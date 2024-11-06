@@ -7,6 +7,7 @@ import torch
 import torch.backends.cudnn as cudnn
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
+
 from utils import AverageMeter, RecorderMeter, time_string, convert_secs2time, clustering_loss, change_quan_bitwidth
 from tensorboardX import SummaryWriter
 import models
@@ -124,136 +125,195 @@ class CustomBlock(nn.Module):
         # enable the flag, thus now computation does not invovle weight quantization
         self.inf_with_weight = True
 
-class quan_Conv1d(nn.Conv1d):
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 kernel_size,
-                 stride=1,
-                 padding=1,
-                 dilation=1,
-                 groups=1,
-                 bias=True):
-        super(quan_Conv1d, self).__init__(in_channels,
-                                          out_channels,
-                                          kernel_size,
-                                          stride=stride,
-                                          padding=padding,
-                                          dilation=dilation,
-                                          groups=groups,
-                                          bias=bias)
+# class quan_Conv1d(nn.Conv1d):
+#     def __init__(self,
+#                  in_channels,
+#                  out_channels,
+#                  kernel_size,
+#                  stride=1,
+#                  padding=1,
+#                  dilation=1,
+#                  groups=1,
+#                  bias=True):
+#         super(quan_Conv1d, self).__init__(in_channels,
+#                                           out_channels,
+#                                           kernel_size,
+#                                           stride=stride,
+#                                           padding=padding,
+#                                           dilation=dilation,
+#                                           groups=groups,
+#                                           bias=bias)
+#
+#         # Số lượng bit để lượng tử hóa trọng số
+#         self.N_bits = 8
+#         self.full_lvls = 2 ** self.N_bits
+#         self.half_lvls = (self.full_lvls - 2) / 2
+#
+#         # Bước lượng tử hóa (step size), là một tham số có thể học được
+#         self.step_size = nn.Parameter(torch.Tensor([1]), requires_grad=True)
+#         self.__reset_stepsize__()
+#
+#         # Cờ để bật hoặc tắt sử dụng trọng số lượng tử hóa
+#         self.inf_with_weight = False  # Tắt theo mặc định
+#
+#         # Tạo một vector để biểu diễn trọng số cho từng bit
+#         self.b_w = nn.Parameter(2 ** torch.arange(start=self.N_bits - 1,
+#                                                   end=-1,
+#                                                   step=-1).unsqueeze(-1).float(),
+#                                 requires_grad=False)
+#         self.b_w[0] = -self.b_w[0]  # Biến đổi MSB thành giá trị âm để hỗ trợ bù hai
+#
+#     def __reset_stepsize__(self):
+#         """Hàm này dùng để đặt lại giá trị `step_size`."""
+#         # Giá trị này có thể được tùy chỉnh tùy thuộc vào yêu cầu của mô hình
+#         self.step_size.data.fill_(1.0)
+#
+#     def forward(self, x):
+#         # Kiểm tra cờ `inf_with_weight` để quyết định sử dụng trọng số đã lượng tử hóa hay không
+#         if self.inf_with_weight:
+#             quantized_weight = self.quantize_weight(self.weight)
+#             return nn.functional.conv1d(x, quantized_weight, self.bias, self.stride,
+#                                         self.padding, self.dilation, self.groups)
+#         else:
+#             return nn.functional.conv1d(x, self.weight, self.bias, self.stride,
+#                                         self.padding, self.dilation, self.groups)
+#
+#     def quantize_weight(self, weight):
+#         """Lượng tử hóa trọng số theo số bit đã định."""
+#         # Tạo trọng số lượng tử hóa bằng cách sử dụng step_size
+#         quantized_weight = torch.round(weight / self.step_size) * self.step_size
+#         quantized_weight = torch.clamp(quantized_weight, -self.half_lvls * self.step_size,
+#                                        (self.half_lvls - 1) * self.step_size)
+#         return quantized_weight
 
-        # Số lượng bit để lượng tử hóa trọng số
-        self.N_bits = 8
-        self.full_lvls = 2 ** self.N_bits
-        self.half_lvls = (self.full_lvls - 2) / 2
+# class CustomModel(nn.Module):
+#     def __init__(self, input_size=76, hidden_size1=128, hidden_size2=64, hidden_size3=32, hidden_size4=16, output_size=9):
+#         super(CustomModel, self).__init__()
+#         self.inplanes = hidden_size1
+#
+#         # Lớp đầu tiên
+#         self.fc1 = quan_Conv1d(input_size, hidden_size1, kernel_size=3, padding=1)
+#         self.bn = nn.BatchNorm1d(hidden_size1)
+#         self.dropout = nn.Dropout(p=0.5)
+#
+#         # Tạo các lớp
+#         self.stage_1 = quan_Conv1d(hidden_size1, hidden_size2, kernel_size=3, padding=1)
+#         self.bn_1 = nn.BatchNorm1d(hidden_size2)
+#         self.stage_1_1 = quan_Conv1d(hidden_size2, hidden_size2, kernel_size=3, padding=1)
+#         self.bn_1_1 = nn.BatchNorm1d(hidden_size2)
+#
+#         self.stage_2 = quan_Conv1d(hidden_size2, hidden_size3, kernel_size=3, padding=1)
+#         self.bn_2 = nn.BatchNorm1d(hidden_size3)
+#         self.stage_2_1 = quan_Conv1d(hidden_size3, hidden_size3, kernel_size=3, padding=1)
+#         self.bn_2_1 = nn.BatchNorm1d(hidden_size3)
+#
+#         self.stage_3 = quan_Conv1d(hidden_size3, hidden_size4, kernel_size=3, padding=1)
+#         self.bn_3 = nn.BatchNorm1d(hidden_size4)
+#         self.stage_3_1 = quan_Conv1d(hidden_size4, hidden_size4, kernel_size=3, padding=1)
+#         self.bn_3_1 = nn.BatchNorm1d(hidden_size4)
+#
+#
+#         self.avgpool = nn.AvgPool1d(kernel_size=1, stride=1)  # Keep kernel size 1 and adjust stride
+#
+#         self.classifier = CustomBlock(hidden_size4, output_size)
+#         for m in self.modules():
+#             if isinstance(m, nn.Conv1d):
+#                 n = m.kernel_size[0] * m.out_channels
+#                 m.weight.data.normal_(0, math.sqrt(2. / n))
+#             elif isinstance(m, nn.Linear):
+#                 init.kaiming_normal(m.weight)
+#                 m.bias.data.zero_()
 
-        # Bước lượng tử hóa (step size), là một tham số có thể học được
-        self.step_size = nn.Parameter(torch.Tensor([1]), requires_grad=True)
-        self.__reset_stepsize__()
-
-        # Cờ để bật hoặc tắt sử dụng trọng số lượng tử hóa
-        self.inf_with_weight = False  # Tắt theo mặc định
-
-        # Tạo một vector để biểu diễn trọng số cho từng bit
-        self.b_w = nn.Parameter(2 ** torch.arange(start=self.N_bits - 1,
-                                                  end=-1,
-                                                  step=-1).unsqueeze(-1).float(),
-                                requires_grad=False)
-        self.b_w[0] = -self.b_w[0]  # Biến đổi MSB thành giá trị âm để hỗ trợ bù hai
-
-    def __reset_stepsize__(self):
-        """Hàm này dùng để đặt lại giá trị `step_size`."""
-        # Giá trị này có thể được tùy chỉnh tùy thuộc vào yêu cầu của mô hình
-        self.step_size.data.fill_(1.0)
-
-    def forward(self, x):
-        # Kiểm tra cờ `inf_with_weight` để quyết định sử dụng trọng số đã lượng tử hóa hay không
-        if self.inf_with_weight:
-            quantized_weight = self.quantize_weight(self.weight)
-            return nn.functional.conv1d(x, quantized_weight, self.bias, self.stride,
-                                        self.padding, self.dilation, self.groups)
-        else:
-            return nn.functional.conv1d(x, self.weight, self.bias, self.stride,
-                                        self.padding, self.dilation, self.groups)
-
-    def quantize_weight(self, weight):
-        """Lượng tử hóa trọng số theo số bit đã định."""
-        # Tạo trọng số lượng tử hóa bằng cách sử dụng step_size
-        quantized_weight = torch.round(weight / self.step_size) * self.step_size
-        quantized_weight = torch.clamp(quantized_weight, -self.half_lvls * self.step_size,
-                                       (self.half_lvls - 1) * self.step_size)
-        return quantized_weight
 
 class CustomModel(nn.Module):
-    def __init__(self, input_size=79, hidden_size1=128, hidden_size2=64, hidden_size3=32, hidden_size4=16, hidden_size5=128, output_size=9):
+    def __init__(self, input_size=76, hidden_size1=128, hidden_size2=64, hidden_size3=32, hidden_size4=16,
+                 output_size=9):
         super(CustomModel, self).__init__()
         self.inplanes = hidden_size1
 
-        # Lớp đầu tiên
-        self.fc1 = quan_Conv1d(input_size, hidden_size1, kernel_size=3, padding=1)
-        self.bn = nn.BatchNorm1d(hidden_size1)
-        self.dropout = nn.Dropout(p=0.5)
+        # Lớp đầu tiên với GroupNorm
+        self.fc1 = quan_Conv1d(input_size, hidden_size1, kernel_size=3, padding=1, groups=2)
+        self.bn = nn.GroupNorm(num_groups=2, num_channels=hidden_size1)  # Có thể thay thế bằng BatchNorm1d nếu cần
+        self.dropout = nn.Dropout(p=0.25)  # Giảm tỷ lệ dropout
 
-        # Tạo các lớp
-        self.stage_1 = quan_Conv1d(hidden_size1, hidden_size2, kernel_size=3, padding=1)
-        self.bn_1 = nn.BatchNorm1d(hidden_size2)
-        self.stage_1_1 = quan_Conv1d(hidden_size2, hidden_size2, kernel_size=3, padding=1)
-        self.bn_1_1 = nn.BatchNorm1d(hidden_size2)
+        # Các khối Residual với lớp bottleneck
+        self.stage_1 = nn.Sequential(
+            quan_Conv1d(hidden_size1, hidden_size2 // 2, kernel_size=1, padding=0),
+            nn.BatchNorm1d(hidden_size2 // 2),
+            nn.ReLU(inplace=True),
+            quan_Conv1d(hidden_size2 // 2, hidden_size2, kernel_size=3, padding=1),
+            nn.BatchNorm1d(hidden_size2)
+        )
+        self.stage_1_1 = nn.Sequential(
+            quan_Conv1d(hidden_size2, hidden_size2 // 2, kernel_size=1, padding=0),
+            nn.BatchNorm1d(hidden_size2 // 2),
+            nn.ReLU(inplace=True),
+            quan_Conv1d(hidden_size2 // 2, hidden_size2, kernel_size=3, padding=1),
+            nn.BatchNorm1d(hidden_size2)
+        )
 
-        self.stage_2 = quan_Conv1d(hidden_size2, hidden_size3, kernel_size=3, padding=1)
-        self.bn_2 = nn.BatchNorm1d(hidden_size3)
-        self.stage_2_1 = quan_Conv1d(hidden_size3, hidden_size3, kernel_size=3, padding=1)
-        self.bn_2_1 = nn.BatchNorm1d(hidden_size3)
+        self.stage_2 = nn.Sequential(
+            quan_Conv1d(hidden_size2, hidden_size3 // 2, kernel_size=1, padding=0),
+            nn.BatchNorm1d(hidden_size3 // 2),
+            nn.ReLU(inplace=True),
+            quan_Conv1d(hidden_size3 // 2, hidden_size3, kernel_size=3, padding=1),
+            nn.BatchNorm1d(hidden_size3)
+        )
+        self.stage_2_1 = nn.Sequential(
+            quan_Conv1d(hidden_size3, hidden_size3 // 2, kernel_size=1, padding=0),
+            nn.BatchNorm1d(hidden_size3 // 2),
+            nn.ReLU(inplace=True),
+            quan_Conv1d(hidden_size3 // 2, hidden_size3, kernel_size=3, padding=1),
+            nn.BatchNorm1d(hidden_size3)
+        )
 
-        self.stage_3 = quan_Conv1d(hidden_size3, hidden_size4, kernel_size=3, padding=1)
-        self.bn_3 = nn.BatchNorm1d(hidden_size4)
-        self.stage_3_1 = quan_Conv1d(hidden_size4, hidden_size4, kernel_size=3, padding=1)
-        self.bn_3_1 = nn.BatchNorm1d(hidden_size4)
+        self.stage_3 = nn.Sequential(
+            quan_Conv1d(hidden_size3, hidden_size4 // 2, kernel_size=1, padding=0),
+            nn.BatchNorm1d(hidden_size4 // 2),
+            nn.ReLU(inplace=True),
+            quan_Conv1d(hidden_size4 // 2, hidden_size4, kernel_size=3, padding=1),
+            nn.BatchNorm1d(hidden_size4)
+        )
+        self.stage_3_1 = nn.Sequential(
+            quan_Conv1d(hidden_size4, hidden_size4 // 2, kernel_size=1, padding=0),
+            nn.BatchNorm1d(hidden_size4 // 2),
+            nn.ReLU(inplace=True),
+            quan_Conv1d(hidden_size4 // 2, hidden_size4, kernel_size=3, padding=1),
+            nn.BatchNorm1d(hidden_size4)
+        )
 
+        self.avgpool = nn.AdaptiveAvgPool1d(output_size=1)  # Adaptive pooling cho tính linh hoạt
 
-        self.avgpool = nn.AvgPool1d(kernel_size=1, stride=1)  # Keep kernel size 1 and adjust stride
-
+        # Khối phân loại cuối cùng
         self.classifier = CustomBlock(hidden_size4, output_size)
-        for m in self.modules():
-            if isinstance(m, nn.Conv1d):
-                n = m.kernel_size[0] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.Linear):
-                init.kaiming_normal(m.weight)
-                m.bias.data.zero_()
 
     def forward(self, x):
         x = self.fc1(x)
-        x = F.relu(self.bn(x), inplace=True)  # Using BatchNorm1d
+        x = F.relu(self.bn(x))  # Sử dụng BatchNorm1d
         x = self.dropout(x)  # Sử dụng dropout
 
         x = self.stage_1(x)
-        x = F.relu(self.bn_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+     #   x = self.dropout(x)
 
         x = self.stage_1_1(x)
-        x = F.relu(self.bn_1_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+      #  x = self.dropout(x)
 
         x = self.stage_2(x)
-        x = F.relu(self.bn_2(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+     #  x = self.dropout(x)
 
         x = self.stage_2_1(x)
-        x = F.relu(self.bn_2_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+     #   x = self.dropout(x)
 
         x = self.stage_3(x)
-        x = F.relu(self.bn_3(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+     #   x = self.dropout(x)
+
         x = self.stage_3_1(x)
-        x = F.relu(self.bn_3_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+      #  x = self.dropout(x)
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         return self.classifier(x)
+
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -561,9 +621,9 @@ def main():
         assert False, 'Do not support dataset : {}'.format(args.dataset)
 
     if args.dataset == 'inid':
-        data = pd.read_csv(r"D:\UIT\NCKH\Dataset\IoT_Network_Intrusion_Dataset\IoT_Network_Intrusion_Dataset.csv", skipinitialspace=True)
+        data = pd.read_csv(r"D:\Sukem\NCKH\Dataset\IoT_Network_Intrusion_Dataset\IoT Network Intrusion Dataset.csv", skipinitialspace=True)
         data = data.drop_duplicates()
-        data = data.drop(columns=['Flow_ID', 'Src_IP', 'Dst_IP', 'Timestamp'])
+        data = data.drop(columns=['Flow_ID', 'Src_IP', 'Dst_IP', 'Src_Port', 'Dst_Port', 'Timestamp', 'Flow_Duration'])
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         dataLabel = data[['Sub_Cat']]
@@ -615,11 +675,83 @@ def main():
             pin_memory=True)
         test_loader = torch.utils.data.DataLoader(test_data,
                                                   batch_size=args.test_batch_size,
-                                                  shuffle=True,
+                                                  shuffle=False,
                                                   num_workers=args.workers,
                                                   pin_memory=True)
 
     print_log("=> creating model '{}'".format(args.arch), log)
+
+
+    # if args.dataset == 'inid':
+    #     # Đọc dữ liệu từ file CSV
+    #     data = pd.read_csv(r"D:\Sukem\NCKH\Dataset\IoT_Network_Intrusion_Dataset\IoT Network Intrusion Dataset.csv",
+    #                        skipinitialspace=True)
+    #     data = data.drop_duplicates()  # Loại bỏ các dòng trùng lặp
+    #     data = data.drop(columns=['Flow_ID', 'Src_IP', 'Dst_IP', 'Src_Port', 'Dst_Port', 'Timestamp', 'Flow_Duration'])
+    #     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #
+    #     # Tách nhãn (label) khỏi dữ liệu
+    #     dataLabel = data[['Sub_Cat']]
+    #     data = data.drop(columns=['Label', 'Cat', 'Sub_Cat'])
+    #
+    #     # Xử lý các giá trị vô hạn và giá trị bị thiếu
+    #     data.replace([np.inf, -np.inf], np.nan, inplace=True)
+    #     data.fillna(data.mean(), inplace=True)
+    #
+    #     # Chuẩn hóa dữ liệu
+    #     scaler = StandardScaler()
+    #     data = scaler.fit_transform(data)
+    #
+    #     # Tách dữ liệu thành tập huấn luyện và tập kiểm tra
+    #     X_train, X_test, y_train, y_test = train_test_split(data, dataLabel, test_size=0.2, random_state=42)
+    #
+    #     # Mã hóa y_train và y_test thành mã số
+    #     y_train, _ = pd.factorize(y_train['Sub_Cat'])
+    #     y_test, _ = pd.factorize(y_test['Sub_Cat'])
+    #
+    #     # Kiểm tra kiểu dữ liệu của y_train và y_test (kiểm tra để tránh lỗi tiềm ẩn)
+    #     print("Kiểu dữ liệu y_train:", y_train.dtype)
+    #     print("Kiểu dữ liệu y_test:", y_test.dtype)
+    #
+    #     # Tạo DataLoader cho tập huấn luyện
+    #     train_loader = DataLoader(
+    #         torch.utils.data.TensorDataset(
+    #             torch.FloatTensor(X_train),
+    #             torch.LongTensor(y_train)
+    #         ),
+    #         batch_size=512,
+    #         num_workers=5,
+    #         shuffle=True
+    #     )
+    #
+    #     # Tạo DataLoader cho tập kiểm tra
+    #     test_loader = DataLoader(
+    #         torch.utils.data.TensorDataset(
+    #             torch.FloatTensor(X_test),
+    #             torch.LongTensor(y_test)
+    #         ),
+    #         batch_size=512,
+    #         num_workers=5,
+    #         shuffle=False
+    #     )
+    #
+    # else:
+    #     train_loader = torch.utils.data.DataLoader(
+    #         train_data,
+    #         batch_size=args.attack_sample_size,
+    #         shuffle=True,
+    #         num_workers=args.workers,
+    #         pin_memory=True
+    #     )
+    #     test_loader = torch.utils.data.DataLoader(
+    #         test_data,
+    #         batch_size=args.test_batch_size,
+    #         shuffle=True,
+    #         num_workers=args.workers,
+    #         pin_memory=True
+    #     )
+    #
+    # print_log("=> creating model '{}'".format(args.arch), log)
 
     # Init model, criterion, and optimizer
     if args.dataset == 'inid':
@@ -987,7 +1119,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
             # the copy will be asynchronous with respect to the host.
             input = input.cuda()
 
-        input = input.view(input.size(0), 79, -1)  # Chuyển đổi kích thước
+        input = input.view(input.size(0), 76, -1)  # Chuyển đổi kích thước
 
         # compute output
         output = model(input)
@@ -1026,10 +1158,10 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
                     loss=losses,
                     top1=top1,
                     top5=top5) + time_string(), log)
-        print_log(
-            '  **Train** Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Error@1 {error1:.3f}'
-            .format(top1=top1, top5=top5, error1=100 - top1.avg), log)
-        return top1.avg, losses.avg
+    print_log(
+        '  **Train** Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Error@1 {error1:.3f}'
+        .format(top1=top1, top5=top5, error1=100 - top1.avg), log)
+    return top1.avg, losses.avg
 
 def validate(val_loader, model, criterion, log, summary_output=False):
     losses = AverageMeter()
@@ -1044,7 +1176,7 @@ def validate(val_loader, model, criterion, log, summary_output=False):
         for i, (input, target) in enumerate(val_loader):
             # Check if input has the correct number of channels
 
-            if input.size(1) == 79 and input.dim() == 2:  # kiểm tra nếu thiếu chiều thứ 3
+            if input.size(1) == 76 and input.dim() == 2:  # kiểm tra nếu thiếu chiều thứ 3
                 input = input.unsqueeze(-1)
 
             if torch.cuda.is_available() and args.use_cuda:

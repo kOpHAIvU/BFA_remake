@@ -93,7 +93,66 @@ class quan_Conv2d(nn.Conv2d):
         # enable the flag, thus now computation does not invovle weight quantization
         self.inf_with_weight = True
 
+class quan_Conv1d(nn.Conv1d):
+    def __init__(self,
+                 in_channels,
+                 out_channels,
+                 kernel_size,
+                 stride=1,
+                 padding=1,
+                 dilation=1,
+                 groups=1,
+                 bias=True):
+        super(quan_Conv1d, self).__init__(in_channels,
+                                          out_channels,
+                                          kernel_size,
+                                          stride=stride,
+                                          padding=padding,
+                                          dilation=dilation,
+                                          groups=groups,
+                                          bias=bias)
 
+        # Số lượng bit để lượng tử hóa trọng số
+        self.N_bits = 8
+        self.full_lvls = 2 ** self.N_bits
+        self.half_lvls = (self.full_lvls - 2) / 2
+
+        # Bước lượng tử hóa (step size), là một tham số có thể học được
+        self.step_size = nn.Parameter(torch.Tensor([1]), requires_grad=True)
+        self.__reset_stepsize__()
+
+        # Cờ để bật hoặc tắt sử dụng trọng số lượng tử hóa
+        self.inf_with_weight = False  # Tắt theo mặc định
+
+        # Tạo một vector để biểu diễn trọng số cho từng bit
+        self.b_w = nn.Parameter(2 ** torch.arange(start=self.N_bits - 1,
+                                                  end=-1,
+                                                  step=-1).unsqueeze(-1).float(),
+                                requires_grad=False)
+        self.b_w[0] = -self.b_w[0]  # Biến đổi MSB thành giá trị âm để hỗ trợ bù hai
+
+    def __reset_stepsize__(self):
+        """Hàm này dùng để đặt lại giá trị `step_size`."""
+        # Giá trị này có thể được tùy chỉnh tùy thuộc vào yêu cầu của mô hình
+        self.step_size.data.fill_(1.0)
+
+    def forward(self, x):
+        # Kiểm tra cờ `inf_with_weight` để quyết định sử dụng trọng số đã lượng tử hóa hay không
+        if self.inf_with_weight:
+            quantized_weight = self.quantize_weight(self.weight)
+            return nn.functional.conv1d(x, quantized_weight, self.bias, self.stride,
+                                        self.padding, self.dilation, self.groups)
+        else:
+            return nn.functional.conv1d(x, self.weight, self.bias, self.stride,
+                                        self.padding, self.dilation, self.groups)
+
+    def quantize_weight(self, weight):
+        """Lượng tử hóa trọng số theo số bit đã định."""
+        # Tạo trọng số lượng tử hóa bằng cách sử dụng step_size
+        quantized_weight = torch.round(weight / self.step_size) * self.step_size
+        quantized_weight = torch.clamp(quantized_weight, -self.half_lvls * self.step_size,
+                                       (self.half_lvls - 1) * self.step_size)
+        return quantized_weight
 class quan_Linear(nn.Linear):
     def __init__(self, in_features, out_features, bias=True):
         super(quan_Linear, self).__init__(in_features, out_features, bias=bias)

@@ -1,5 +1,5 @@
 import torch
-from models.quantization import quan_Conv2d, quan_Linear
+from models.quantization import quan_Conv1d, quan_Linear
 
 
 def int2bin(input, num_bits):
@@ -42,7 +42,7 @@ def weight_conversion(model):
         N_bits <= 32  .int()    --> torch.IntTensor(), 32 bit signed integer
     '''
     for m in model.modules():
-        if isinstance(m, quan_Conv2d) or isinstance(m, quan_Linear):
+        if isinstance(m, quan_Conv1d) or isinstance(m, quan_Linear):
             w_bin = int2bin(m.weight.data, m.N_bits).short()
             m.weight.data = bin2int(w_bin, m.N_bits).float()
     return
@@ -68,7 +68,7 @@ def hamming_distance(model1, model2):
     H_dist = 0  # hamming distance counter
 
     for name, module in model1.named_modules():
-        if isinstance(module, quan_Conv2d) or isinstance(module, quan_Linear):
+        if isinstance(module, quan_Conv1d) or isinstance(module, quan_Linear):
             # remember to convert the tensor into integer for bitwise operations
             binW_model1 = int2bin(model1.state_dict()[name + '.weight'],
                                   module.N_bits).short()
