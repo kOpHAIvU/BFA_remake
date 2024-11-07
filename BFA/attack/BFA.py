@@ -25,7 +25,7 @@ class BFA(object):
 
         for name, m in model.named_modules():
             if isinstance(m, quan_Conv2d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock):
-                self.module_list.append(name)       
+                self.module_list.append(name)
 
     def flip_bit(self, m):
         '''
@@ -113,7 +113,7 @@ class BFA(object):
 
             # iterate all the quantized conv and linear layer
             for name, module in model.named_modules():
-                if module.__class__.__name__ == "CustomBlock" or module.__class__.__name__ == "quan_Conv1d":
+                if module.__class__.__name__ == "CustomBlock":
                     clean_weight = module.weight.data.detach()
                     attack_weight = self.flip_bit(module)
 
@@ -121,7 +121,6 @@ class BFA(object):
                     module.weight.data = attack_weight
                     output = model(data)
 
-                    print("Criterion: ",self.criterion(output, target))
                     self.loss_dict[name] = self.criterion(output,
                                                           target).item()
                     # change the weight back to the clean weight
@@ -148,9 +147,7 @@ class BFA(object):
                 #############################################
                 weight_mismatch = attack_weight - module.weight.detach()
                 attack_weight_idx = torch.nonzero(weight_mismatch)
-                
-                print('attacked module:', max_loss_module)
-                
+
                 attack_log = [] # init an empty list for profile
                 
                 for i in range(attack_weight_idx.size()[0]):
@@ -158,10 +155,6 @@ class BFA(object):
                     weight_idx = attack_weight_idx[i,:].cpu().numpy()
                     weight_prior = module.weight.detach()[tuple(attack_weight_idx[i,:])].item()
                     weight_post = attack_weight[tuple(attack_weight_idx[i,:])].item()
-                    
-                    print('attacked weight index:', weight_idx)
-                    print('weight before attack:', weight_prior)
-                    print('weight after attack:', weight_post)
                     
                     tmp_list = [module_idx, # module index in the net
                                 self.bit_counter + (i+1), # current bit-flip index
@@ -208,18 +201,13 @@ class BFA(object):
                 weight_mismatch = flatten_weight[chosen_idx] - int_w
                 attack_weight_idx = chosen_idx
                 
-                print('attacked module:', chosen_module)
-                
+
                 attack_log = [] # init an empty list for profile
                 
                 
                 weight_idx = chosen_idx
                 weight_prior = flatten_weight[chosen_idx]
                 weight_post = int_w
-
-                print('attacked weight index:', weight_idx)
-                print('weight before attack:', weight_prior)
-                print('weight after attack:', weight_post)  
                 
                 tmp_list = ["module_idx", # module index in the net
                             self.bit_counter + 1, # current bit-flip index

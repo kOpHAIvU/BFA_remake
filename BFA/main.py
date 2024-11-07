@@ -100,12 +100,15 @@ class CustomBlock(nn.Module):
 
     def forward(self, input):
         if self.inf_with_weight:
-            return F.linear(input, self.weight * self.step_size)  # Không cần bias ở đây
+            weight_applied = self.weight * self.step_size
         else:
             self.__reset_stepsize__()
-            weight_quan = quantize(self.weight, self.step_size,
-                                   self.half_lvls) * self.step_size
-            return F.linear(input, weight_quan)  # Không cần bias ở đây
+            weight_quan = quantize(self.weight, self.step_size, self.half_lvls) * self.step_size
+            weight_applied = weight_quan
+
+        # Apply softmax instead of linear transformation
+        output = F.softmax(input @ weight_applied.T, dim=-1)
+        return output
 
     def __reset_stepsize__(self):
         with torch.no_grad():
@@ -185,75 +188,55 @@ class quan_Conv1d(nn.Conv1d):
                                        (self.half_lvls - 1) * self.step_size)
         return quantized_weight
 
+
 class CustomModel(nn.Module):
-    def __init__(self, input_size=79, hidden_size1=128, hidden_size2=64, hidden_size3=32, hidden_size4=16, hidden_size5=128, output_size=9):
+    def __init__(self, input_size=69, hidden_size1=128, hidden_size2=64, hidden_size3=32, hidden_size4=16, hidden_size5=128, output_size=9):
         super(CustomModel, self).__init__()
-        self.inplanes = hidden_size1
+        self.fc1 = quan_Conv1d(input_size, hidden_size1, kernel_size=3, stride=2, padding=1)
+        self.pool = nn.AdaptiveMaxPool1d(1)
 
-        # Lớp đầu tiên
-        self.fc1 = quan_Conv1d(input_size, hidden_size1, kernel_size=3, padding=1)
-        self.bn = nn.BatchNorm1d(hidden_size1)
-        self.dropout = nn.Dropout(p=0.5)
+        self.stage_1 = quan_Conv1d(hidden_size1, hidden_size2, kernel_size=3, stride=2, padding=1)
+        self.stage_1_1 = quan_Conv1d(hidden_size2, hidden_size2, kernel_size=3, stride=2, padding=1)
 
-        # Tạo các lớp
-        self.stage_1 = quan_Conv1d(hidden_size1, hidden_size2, kernel_size=3, padding=1)
-        self.bn_1 = nn.BatchNorm1d(hidden_size2)
-        self.stage_1_1 = quan_Conv1d(hidden_size2, hidden_size2, kernel_size=3, padding=1)
-        self.bn_1_1 = nn.BatchNorm1d(hidden_size2)
+        self.stage_2 = quan_Conv1d(hidden_size2, hidden_size3, kernel_size=3, stride=2, padding=1)
+        self.stage_2_1 = quan_Conv1d(hidden_size3, hidden_size3, kernel_size=3, stride=2, padding=1)
 
-        self.stage_2 = quan_Conv1d(hidden_size2, hidden_size3, kernel_size=3, padding=1)
-        self.bn_2 = nn.BatchNorm1d(hidden_size3)
-        self.stage_2_1 = quan_Conv1d(hidden_size3, hidden_size3, kernel_size=3, padding=1)
-        self.bn_2_1 = nn.BatchNorm1d(hidden_size3)
+        self.stage_3 = quan_Conv1d(hidden_size3, hidden_size4, kernel_size=3, stride=2, padding=1)
+        self.stage_3_1 = quan_Conv1d(hidden_size4, hidden_size4, kernel_size=3, stride=2, padding=1)
 
-        self.stage_3 = quan_Conv1d(hidden_size3, hidden_size4, kernel_size=3, padding=1)
-        self.bn_3 = nn.BatchNorm1d(hidden_size4)
-        self.stage_3_1 = quan_Conv1d(hidden_size4, hidden_size4, kernel_size=3, padding=1)
-        self.bn_3_1 = nn.BatchNorm1d(hidden_size4)
-
-
-        self.avgpool = nn.AvgPool1d(kernel_size=1, stride=1)  # Keep kernel size 1 and adjust stride
+        self.avgpool = nn.AdaptiveAvgPool1d(1)
+        self.dropout = nn.Dropout(p=0.4)  # Dropout layer to reduce overfitting
 
         self.classifier = CustomBlock(hidden_size4, output_size)
-        for m in self.modules():
-            if isinstance(m, nn.Conv1d):
-                n = m.kernel_size[0] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.Linear):
-                init.kaiming_normal(m.weight)
-                m.bias.data.zero_()
 
     def forward(self, x):
         x = self.fc1(x)
-        x = F.relu(self.bn(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+        x = F.relu(self.pool(x), inplace=True)
 
         x = self.stage_1(x)
-        x = F.relu(self.bn_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+        x = F.relu(self.pool(x), inplace=True)
 
         x = self.stage_1_1(x)
-        x = F.relu(self.bn_1_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+        x = F.relu(self.pool(x), inplace=True)
 
         x = self.stage_2(x)
-        x = F.relu(self.bn_2(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+        x = F.relu(self.pool(x), inplace=True)
 
         x = self.stage_2_1(x)
-        x = F.relu(self.bn_2_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+        x = F.relu(self.pool(x), inplace=True)
 
         x = self.stage_3(x)
-        x = F.relu(self.bn_3(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+        x = F.relu(self.pool(x), inplace=True)
+
         x = self.stage_3_1(x)
-        x = F.relu(self.bn_3_1(x), inplace=True)  # Using BatchNorm1d
-        x = self.dropout(x)  # Sử dụng dropout
+        x = F.relu(self.pool(x), inplace=True)
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
+        x = self.dropout(x)
+
         return self.classifier(x)
+
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -564,17 +547,20 @@ def main():
         data = pd.read_csv(r"D:\UIT\NCKH\Dataset\IoT_Network_Intrusion_Dataset\IoT_Network_Intrusion_Dataset.csv", skipinitialspace=True)
         data = data.drop_duplicates()
         data = data.drop(columns=['Flow_ID', 'Src_IP', 'Dst_IP', 'Timestamp'])
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        data = data.drop(columns=['Fwd_PSH_Flags', 'Fwd_URG_Flags', 'Fwd_Byts/b_Avg', 'Fwd_Pkts/b_Avg',
+                                  'Fwd_Blk_Rate_Avg', 'Bwd_Byts/b_Avg', 'Bwd_Pkts/b_Avg', 'Bwd_Blk_Rate_Avg',
+                                  'Init_Fwd_Win_Byts', 'Fwd_Seg_Size_Min'])
 
+        data.replace([np.inf, -np.inf], np.nan, inplace=True)
+        data.fillna(0, inplace=True)
+        data = data.drop_duplicates()
         dataLabel = data[['Sub_Cat']]
         data = data.drop(columns=['Label', 'Cat', 'Sub_Cat'])
-        data.replace([np.inf, -np.inf], np.nan, inplace=True)
-        data.fillna(data.mean(), inplace=True)
 
         scaler = StandardScaler()
         data = scaler.fit_transform(data)
         # Tách dữ liệu thành tập huấn luyện và tập kiểm tra
-        X_train, X_test, y_train, y_test = train_test_split(data, dataLabel, test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(data, dataLabel, test_size=0.2, random_state=100)
 
         # Chuyển đổi y_train và y_test thành mã số
         y_train, _ = pd.factorize(y_train['Sub_Cat'])  # Chuyển đổi thành mã số
@@ -592,7 +578,8 @@ def main():
             ),
             batch_size=512,
             num_workers=5,
-            shuffle=True
+            shuffle=True,
+            pin_memory=True
         )
 
         # Tạo DataLoader cho tập kiểm tra
@@ -603,7 +590,8 @@ def main():
             ),
             batch_size=512,
             num_workers=5,
-            shuffle=False
+            shuffle=True,
+            pin_memory=True
         )
 
     else:
@@ -651,27 +639,28 @@ def main():
     if args.optimizer == "SGD":
         print("using SGD as optimizer")
         optimizer = torch.optim.SGD(all_param,
-                                    lr=state['learning_rate'],
-                                    momentum=state['momentum'],
-                                    weight_decay=state['decay'],
+                                    lr=0.01,
+                                    momentum=0.9,
+                                    weight_decay=0.0001,
                                     nesterov=True)
 
     elif args.optimizer == "Adam":
         print("using Adam as optimizer")
         optimizer = torch.optim.Adam(filter(lambda param: param.requires_grad,
                                             all_param),
-                                     lr=state['learning_rate'],
-                                     weight_decay=state['decay'])
+                                     lr=0.01,
+                                     momentum=0.9,
+                                     weight_decay=0.0001)
 
     elif args.optimizer == "RMSprop":
         print("using RMSprop as optimizer")
         optimizer = torch.optim.RMSprop(
             filter(lambda param: param.requires_grad, net.parameters()),
-            lr=state['learning_rate'],
+            lr=0.01,
             alpha=0.99,
             eps=1e-08,
-            weight_decay=0,
-            momentum=0)
+            momentum=0.9,
+            weight_decay=0.0001)
 
     if args.use_cuda:
         net.cuda()
@@ -720,7 +709,7 @@ def main():
     # block for weight reset
     if args.reset_weight:
         for m in net.modules():
-            if isinstance(m, quan_Conv2d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock) or m.__class__.__name__ == "CustomBlock" or m.__class__.__name__ == "quan_Conv1d":
+            if isinstance(m, quan_Conv2d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock):
                 m.__reset_weight__()
                 # print(m.weight)
 
@@ -841,7 +830,7 @@ def main():
 def perform_attack(attacker, model, model_clean, train_loader, test_loader,
                    N_iter, log, writer, csv_save_path=None, random_attack=True):
     # Note that, attack has to be done in evaluation model due to batch-norm.
-    # see: https://discuss.pytorch.org/t/what-does-model-eval-do-for-batchnorm-layer/7146
+    # see: https://discuss.pytorch.org/t/what-does-model-eval-do-for-batchnorm-layer/6946
     model.eval()
     losses = AverageMeter()
     iter_time = AverageMeter()
@@ -852,6 +841,8 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
         if args.use_cuda:
             target = target.cuda()
             data = data.cuda()
+
+        data = data.unsqueeze(-1)  # data giờ có kích thước [512, 69, 1]
         # Override the target to prevent label leaking
         _, target = model(data).data.max(1)
         break
@@ -932,7 +923,6 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
             attack_log[i].append(acc_drop)
         # Giả sử attack_log là danh sách các danh sách
         df = pd.concat([df, pd.DataFrame(attack_log)], ignore_index=True)
-        print("attack_log structure:", attack_log)
 
         writer.add_scalar('attack/val_top1_acc', val_acc_top1, i_iter + 1)
         writer.add_scalar('attack/val_top5_acc', val_acc_top5, i_iter + 1)
@@ -987,7 +977,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
             # the copy will be asynchronous with respect to the host.
             input = input.cuda()
 
-        input = input.view(input.size(0), 79, -1)  # Chuyển đổi kích thước
+        input = input.view(input.size(0), 69, -1)  # Chuyển đổi kích thước
 
         # compute output
         output = model(input)
@@ -1026,10 +1016,10 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
                     loss=losses,
                     top1=top1,
                     top5=top5) + time_string(), log)
-        print_log(
-            '  **Train** Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Error@1 {error1:.3f}'
-            .format(top1=top1, top5=top5, error1=100 - top1.avg), log)
-        return top1.avg, losses.avg
+    print_log(
+        '  **Train** Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Error@1 {error1:.3f}'
+        .format(top1=top1, top5=top5, error1=100 - top1.avg), log)
+    return top1.avg, losses.avg
 
 def validate(val_loader, model, criterion, log, summary_output=False):
     losses = AverageMeter()
@@ -1044,7 +1034,7 @@ def validate(val_loader, model, criterion, log, summary_output=False):
         for i, (input, target) in enumerate(val_loader):
             # Check if input has the correct number of channels
 
-            if input.size(1) == 79 and input.dim() == 2:  # kiểm tra nếu thiếu chiều thứ 3
+            if input.size(1) == 69 and input.dim() == 2:  # kiểm tra nếu thiếu chiều thứ 3
                 input = input.unsqueeze(-1)
 
             if torch.cuda.is_available() and args.use_cuda:
@@ -1131,12 +1121,6 @@ def accuracy2(outputs_label, outputs_cat, outputs_sub_cat, y_label_batch, y_cat_
             y_sub_cat_batch = y_sub_cat_batch.unsqueeze(0)
 
         batch_size = y_label_batch.size(0)
-
-        # Kiểm tra kích thước của outputs
-        print("Outputs dimensions:")
-        print(f"outputs_label: {outputs_label.shape}")
-        print(f"outputs_cat: {outputs_cat.shape}")
-        print(f"outputs_sub_cat: {outputs_sub_cat.shape}")
 
         if outputs_label.dim() != 2 or outputs_cat.dim() != 2 or outputs_sub_cat.dim() != 2:
             raise ValueError("Outputs must have dimension [batch_size, num_classes].")
