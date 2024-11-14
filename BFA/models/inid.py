@@ -1,6 +1,8 @@
 import torch.nn as nn
 
 __all__ = ['inid']
+
+
 def inid(pretrained=True, **kwargs):
     model = SimpleModel()
     return model

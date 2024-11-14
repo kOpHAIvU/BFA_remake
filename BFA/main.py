@@ -19,12 +19,14 @@ import copy
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import matthews_corrcoef, confusion_matrix
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from torch.nn import init
 import math
+
 
 class _quantize_func(torch.autograd.Function):
     @staticmethod
@@ -46,7 +48,9 @@ class _quantize_func(torch.autograd.Function):
 
         return grad_input, None, None
 
+
 quantize = _quantize_func.apply
+
 
 class _bin_func(torch.autograd.Function):
 
@@ -64,7 +68,9 @@ class _bin_func(torch.autograd.Function):
         grad_input = grad_output.clone() / ctx.mu
         return grad_input, None
 
+
 w_bin = _bin_func.apply
+
 
 class CustomBlock(nn.Module):
     def __init__(self, in_features, out_features, bias=True):
@@ -126,6 +132,7 @@ class CustomBlock(nn.Module):
                                         self.half_lvls)
         # enable the flag, thus now computation does not invovle weight quantization
         self.inf_with_weight = True
+
 
 class quan_Conv1d(nn.Conv1d):
     def __init__(self,
@@ -190,7 +197,8 @@ class quan_Conv1d(nn.Conv1d):
 
 
 class CustomModel(nn.Module):
-    def __init__(self, input_size=69, hidden_size1=128, hidden_size2=64, hidden_size3=32, hidden_size4=16, hidden_size5=128, output_size=9):
+    def __init__(self, input_size=69, hidden_size1=128, hidden_size2=64, hidden_size3=32,
+                 hidden_size4=16, output_size=9):
         super(CustomModel, self).__init__()
         self.fc1 = quan_Conv1d(input_size, hidden_size1, kernel_size=3, stride=2, padding=1)
         self.pool = nn.AdaptiveMaxPool1d(1)
@@ -242,8 +250,7 @@ model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
 
-################# Options ##################################################
-############################################################################
+    ################# Options ######################
 parser = argparse.ArgumentParser(
     description='Training network for image classification',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -266,7 +273,7 @@ parser.add_argument('--arch',
 # Optimization options
 parser.add_argument('--epochs',
                     type=int,
-                    default=200,
+                    default=100,
                     help='Number of epochs to train.')
 parser.add_argument('--optimizer',
                     type=str,
@@ -544,7 +551,8 @@ def main():
         assert False, 'Do not support dataset : {}'.format(args.dataset)
 
     if args.dataset == 'inid':
-        data = pd.read_csv(r"D:\UIT\NCKH\Dataset\IoT_Network_Intrusion_Dataset\IoT_Network_Intrusion_Dataset.csv", skipinitialspace=True)
+        data = pd.read_csv(r"D:\Sukem\NCKH\Dataset\IoT_Network_Intrusion_Dataset\IoT_Network_Intrusion_Dataset.csv",
+                           skipinitialspace=True)
         data = data.drop_duplicates()
         data = data.drop(columns=['Flow_ID', 'Src_IP', 'Dst_IP', 'Timestamp'])
         data = data.drop(columns=['Fwd_PSH_Flags', 'Fwd_URG_Flags', 'Fwd_Byts/b_Avg', 'Fwd_Pkts/b_Avg',
@@ -554,13 +562,13 @@ def main():
         data.replace([np.inf, -np.inf], np.nan, inplace=True)
         data.fillna(0, inplace=True)
         data = data.drop_duplicates()
-        dataLabel = data[['Sub_Cat']]
+        datalabel = data[['Sub_Cat']]
         data = data.drop(columns=['Label', 'Cat', 'Sub_Cat'])
 
         scaler = StandardScaler()
         data = scaler.fit_transform(data)
         # Tách dữ liệu thành tập huấn luyện và tập kiểm tra
-        X_train, X_test, y_train, y_test = train_test_split(data, dataLabel, test_size=0.2, random_state=100)
+        X_train, X_test, y_train, y_test = train_test_split(data, datalabel, test_size=0.2, random_state=100)
 
         # Chuyển đổi y_train và y_test thành mã số
         y_train, _ = pd.factorize(y_train['Sub_Cat'])  # Chuyển đổi thành mã số
@@ -590,7 +598,7 @@ def main():
             ),
             batch_size=512,
             num_workers=5,
-            shuffle=True,
+            shuffle=False,
             pin_memory=True
         )
 
@@ -603,7 +611,7 @@ def main():
             pin_memory=True)
         test_loader = torch.utils.data.DataLoader(test_data,
                                                   batch_size=args.test_batch_size,
-                                                  shuffle=True,
+                                                  shuffle=False,
                                                   num_workers=args.workers,
                                                   pin_memory=True)
 
@@ -725,7 +733,7 @@ def main():
 
     if args.evaluate:
         print("Evaluate mode")
-        _,_,_, output_summary = validate(test_loader, net, criterion, log, summary_output=True)
+        _, _, _, output_summary = validate(test_loader, net, criterion, log, summary_output=True)
         pd.DataFrame(output_summary).to_csv(os.path.join(args.save_path, 'output_summary_{}.csv'.format(args.arch)),
                                             header=['top-1 output'], index=False)
         return
@@ -737,95 +745,97 @@ def main():
     for epoch in range(args.start_epoch, args.epochs):
         current_learning_rate, current_momentum = adjust_learning_rate(
             optimizer, epoch, args.gammas, args.schedule)
+
         # Display simulation time
-        need_hour, need_mins, need_secs = convert_secs2time(
-            epoch_time.avg * (args.epochs - epoch))
-        need_time = '[Need: {:02d}:{:02d}:{:02d}]'.format(
-            need_hour, need_mins, need_secs)
+        need_hour, need_mins, need_secs = convert_secs2time(epoch_time.avg * (args.epochs - epoch))
+        need_time = '[Need: {:02d}:{:02d}:{:02d}]'.format(need_hour, need_mins, need_secs)
 
         print_log(
-            '\n==>>{:s} [Epoch={:03d}/{:03d}] {:s} [LR={:6.4f}][M={:1.2f}]'.format(time_string(), epoch, args.epochs,
-                                                                                   need_time, current_learning_rate,
-                                                                                   current_momentum) \
-            + ' [Best : Accuracy={:.2f}, Error={:.2f}]'.format(recorder.max_accuracy(False),
-                                                               100 - recorder.max_accuracy(False)), log)
+            f'\n==>>{time_string()} [Epoch={epoch:03d}/{args.epochs:03d}] {need_time} [LR={current_learning_rate:.4f}][M={current_momentum:.2f}]' +
+            f' [Best : MCC={recorder.max_mcc(False):.2f}, Error={100 - recorder.max_mcc(False):.2f}]', log)
 
-        # train for one epoch
-        train_acc, train_los = train(train_loader, net, criterion, optimizer,
-                                     epoch, log)
+        # Train for one epoch
+        train_mcc, train_loss = train(train_loader, net, criterion, optimizer, epoch, log)
 
-        # evaluate on validation set
-        val_acc, _, val_los = validate(test_loader, net, criterion, log)
-        recorder.update(epoch, train_los, train_acc, val_los, val_acc)
-        is_best = val_acc >= recorder.max_accuracy(False)
+        # Evaluate on validation set
+        val_mcc, _, val_loss = validate(test_loader, net, criterion, log)
 
-        if args.model_only:
-            checkpoint_state = {'state_dict': net.state_dict}
-        else:
-            checkpoint_state = {
-                'epoch': epoch + 1,
-                'arch': args.arch,
-                'state_dict': net.state_dict(),
-                'recorder': recorder,
-                'optimizer': optimizer.state_dict(),
-            }
+        # Convert to scalar if necessary
+        for metric in [train_loss, train_mcc, val_loss, val_mcc]:
+            if isinstance(metric, (list, np.ndarray, torch.Tensor)):
+                metric = metric[0] if isinstance(metric, (list, np.ndarray)) else metric.item()
 
-        save_checkpoint(checkpoint_state, is_best, args.save_path,
-                        'checkpoint.pth.tar', log)
 
-        # measure elapsed time
+        # Ensure that train_loss, train_mcc, val_loss, val_mcc are scalar values
+        train_loss = train_loss[0] if isinstance(train_loss, (list, np.ndarray)) else (
+            train_loss.item() if isinstance(train_loss, torch.Tensor) else train_loss)
+        train_mcc = train_mcc[0] if isinstance(train_mcc, (list, np.ndarray)) else (
+            train_mcc.item() if isinstance(train_mcc, torch.Tensor) else train_mcc)
+        val_loss = val_loss[0] if isinstance(val_loss, (list, np.ndarray)) else (
+            val_loss.item() if isinstance(val_loss, torch.Tensor) else val_loss)
+        val_mcc = val_mcc[0] if isinstance(val_mcc, (list, np.ndarray)) else (
+            val_mcc.item() if isinstance(val_mcc, torch.Tensor) else val_mcc)
+
+
+        # Check for NaN or Inf
+        if any(np.isnan(x) or np.isinf(x) for x in [train_loss, train_mcc, val_loss, val_mcc]):
+            print("Warning: NaN or Inf detected. Skipping this epoch.")
+            continue
+
+        # Update recorder
+        recorder.update(epoch, train_loss, train_mcc, val_loss, val_mcc)
+        is_best = val_mcc >= recorder.max_mcc(False)
+
+        # Save checkpoint
+        checkpoint_state = {'state_dict': net.state_dict()} if args.model_only else {
+            'epoch': epoch + 1, 'arch': args.arch,
+            'state_dict': net.state_dict(), 'recorder': recorder,
+            'optimizer': optimizer.state_dict(),
+        }
+        save_checkpoint(checkpoint_state, is_best, args.save_path, 'checkpoint.pth.tar', log)
+
+        # Measure elapsed time
         epoch_time.update(time.time() - start_time)
         start_time = time.time()
+
+        # Plot learning curve
         recorder.plot_curve(os.path.join(args.save_path, 'curve.png'))
 
-        # save addition accuracy log for plotting
-        accuracy_logger(base_dir=args.save_path,
-                        epoch=epoch,
-                        train_accuracy=train_acc,
-                        test_accuracy=val_acc)
+        # Save additional MCC log for plotting
+        mcc_logger(base_dir=args.save_path, epoch=epoch, train_mcc=train_mcc, test_mcc=val_mcc)
+
+        # TensorBoard logging
+        writer.add_scalar('learning_rate', current_learning_rate, epoch + 1)
+        writer.add_scalar('momentum', current_momentum, epoch + 1)
+        writer.add_scalar('loss/train_loss', train_loss, epoch + 1)
+        writer.add_scalar('loss/test_loss', val_loss, epoch + 1)
+        writer.add_scalar('mcc/train_mcc', train_mcc, epoch + 1)
+        writer.add_scalar('mcc/test_mcc', val_mcc, epoch + 1)
 
         # ============ TensorBoard logging ============#
-
-        ## Log the graidents distribution
         for name, param in net.named_parameters():
             name = name.replace('.', '/')
-            try:
-                writer.add_histogram(name + '/grad',
-                                    param.grad.clone().cpu().data.numpy(),
-                                    epoch + 1,
-                                    bins='tensorflow')
-            except:
-                pass
-
-            try:
-                writer.add_histogram(name, param.clone().cpu().data.numpy(),
-                                      epoch + 1, bins='tensorflow')
-            except:
-                pass
+            if param.grad is not None:
+                writer.add_histogram(name + '/grad', param.grad.cpu().data.numpy(), epoch + 1, bins='tensorflow')
+            writer.add_histogram(name, param.cpu().data.numpy(), epoch + 1, bins='tensorflow')
 
         total_weight_change = 0
-
         for name, module in net.named_modules():
-            if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
-                try:
-                    writer.add_histogram(name+'/bin_weight', module.bin_weight.clone().cpu().data.numpy(), epoch + 1,
-                                        bins='tensorflow')
-                    writer.add_scalar(name + '/bin_weight_change', module.bin_weight_change, epoch+1)
-                    total_weight_change += module.bin_weight_change
-                    writer.add_scalar(name + '/bin_weight_change_ratio', module.bin_weight_change_ratio, epoch+1)
-                except:
-                    pass
+            if isinstance(module, (torch.nn.Conv2d, torch.nn.Linear)):
+                if hasattr(module, 'bin_weight'):
+                    writer.add_histogram(name + '/bin_weight', module.bin_weight.cpu().data.numpy(), epoch + 1,
+                                         bins='tensorflow')
+                    writer.add_scalar(name + '/bin_weight_change', getattr(module, 'bin_weight_change', 0), epoch + 1)
+                    total_weight_change += getattr(module, 'bin_weight_change', 0)
+                    writer.add_scalar(name + '/bin_weight_change_ratio', getattr(module, 'bin_weight_change_ratio', 0),
+                                      epoch + 1)
 
         writer.add_scalar('total_weight_change', total_weight_change, epoch + 1)
-        print('total weight changes:', total_weight_change)
-
-        writer.add_scalar('loss/train_loss', train_los, epoch + 1)
-        writer.add_scalar('loss/test_loss', val_los, epoch + 1)
-        writer.add_scalar('accuracy/train_accuracy', train_acc, epoch + 1)
-        writer.add_scalar('accuracy/test_accuracy', val_acc, epoch + 1)
-        # ============ TensorBoard logging ============#
-
+        writer.add_scalar('time/epoch_duration', epoch_time.val, epoch + 1)
+    # ============ TensorBoard logging ============#
+    writer.close()
     log.close()
+
 
 def perform_attack(attacker, model, model_clean, train_loader, test_loader,
                    N_iter, log, writer, csv_save_path=None, random_attack=True):
@@ -847,7 +857,7 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
         _, target = model(data).data.max(1)
         break
 
-    # evaluate the test accuracy of clean model
+    # evaluate the test mcc of clean model
     val_acc_top1, val_acc_top5, val_loss, output_summary = validate(test_loader, model,
                                                     attacker.criterion, log, summary_output=True)
     tmp_df = pd.DataFrame(output_summary, columns=['top-1 output'])
@@ -935,7 +945,7 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
                 iter_time=iter_time), log)
         end = time.time()
         
-        # Stop the attack if the accuracy is below the configured break_acc.
+        # Stop the attack if the mcc is below the configured break_acc.
         if args.dataset == 'cifar10':
             break_acc = 11.0
         elif args.dataset == 'imagenet':
@@ -945,8 +955,8 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
         
     # attack profile
     column_list = ['module idx', 'bit-flip idx', 'module name', 'weight idx',
-                  'weight before attack', 'weight after attack', 'validation accuracy',
-                  'accuracy drop']
+                  'weight before attack', 'weight after attack', 'validation mcc',
+                  'mcc drop']
     df.columns = column_list
 
     df['trial seed'] = args.manualSeed
@@ -956,47 +966,46 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
 
     return
 
+
 # train function (forward, backward, update)
 def train(train_loader, model, criterion, optimizer, epoch, log):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
+    mcc_meter = AverageMeter()  # Track MCC instead of accuracy
 
-    # switch to train mode
+    # Switch to train mode
     model.train()
 
     end = time.time()
     for i, (input, target) in enumerate(train_loader):
-        # measure data loading time
+        # Measure data loading time
         data_time.update(time.time() - end)
 
         if args.use_cuda:
             target = target.cuda()
-            # the copy will be asynchronous with respect to the host.
             input = input.cuda()
 
-        input = input.view(input.size(0), 69, -1)  # Chuyển đổi kích thước
+        input = input.view(input.size(0), 69, -1)  # Reshape input
 
-        # compute output
+        # Compute output and loss
         output = model(input)
         loss = criterion(output, target)
+
         if args.clustering:
             loss += clustering_loss(model, args.lambda_coeff)
 
-        # measure accuracy and record loss
-        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+        # Compute MCC and record loss
+        mcc_value = mcc(output.data, target)  # MCC calculation instead of topk accuracy
         losses.update(loss.item(), input.size(0))
-        top1.update(prec1.item(), input.size(0))
-        top5.update(prec5.item(), input.size(0))
+        mcc_meter.update(mcc_value, input.size(0))
 
-        # compute gradient and do SGD step
+        # Compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        # measure elapsed time
+        # Measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
 
@@ -1006,65 +1015,64 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})   '
                 'Data {data_time.val:.3f} ({data_time.avg:.3f})   '
                 'Loss {loss.val:.4f} ({loss.avg:.4f})   '
-                'Prec@1 {top1.val:.3f} ({top1.avg:.3f})   '
-                'Prec@5 {top5.val:.3f} ({top5.avg:.3f})   '.format(
+                'MCC {mcc_meter.val:.3f} ({mcc_meter.avg:.3f})   '.format(
                     epoch,
                     i,
                     len(train_loader),
                     batch_time=batch_time,
                     data_time=data_time,
                     loss=losses,
-                    top1=top1,
-                    top5=top5) + time_string(), log)
+                    mcc_meter=mcc_meter) + time_string(), log)
+
     print_log(
-        '  **Train** Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Error@1 {error1:.3f}'
-        .format(top1=top1, top5=top5, error1=100 - top1.avg), log)
-    return top1.avg, losses.avg
+        '  **Train** MCC {mcc_meter.avg:.3f} Error@MCC {error_mcc:.3f}'
+        .format(mcc_meter=mcc_meter, error_mcc=100 - mcc_meter.avg), log)
 
-def validate(val_loader, model, criterion, log, summary_output=False):
+    return mcc_meter.avg, losses.avg
+
+
+def validate(val_loader, model, criterion, log, summary_output=True):
     losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
+    mcc_meter = AverageMeter()  # Sử dụng MCC thay vì accuracy
 
-    # switch to evaluate mode
+    # Chuyển model sang chế độ đánh giá
     model.eval()
-    output_summary = []  # init a list for output summary
+    output_summary = []  # Khởi tạo danh sách cho output summary
 
     with torch.no_grad():
         for i, (input, target) in enumerate(val_loader):
-            # Check if input has the correct number of channels
-
-            if input.size(1) == 69 and input.dim() == 2:  # kiểm tra nếu thiếu chiều thứ 3
+            if input.size(1) == 69 and input.dim() == 2:  # Kiểm tra nếu thiếu chiều thứ 3
                 input = input.unsqueeze(-1)
 
             if torch.cuda.is_available() and args.use_cuda:
                 target = target.cuda(non_blocking=True)
                 input = input.cuda(non_blocking=True)
 
-            # compute output
+            # Tính toán output và loss
             output = model(input)
             loss = criterion(output, target)
+            losses.update(loss.item(), input.size(0))  # Cập nhật losses
 
-            # summary the output
+            # Tính MCC
+            mcc_value = mcc(output.data, target)
+            mcc_meter.update(mcc_value, input.size(0))
+
+            # Tóm tắt output nếu cần
             if summary_output:
                 tmp_list = output.max(1, keepdim=True)[1].flatten().cpu().numpy()
                 output_summary.append(tmp_list if isinstance(tmp_list, np.ndarray) else np.array(tmp_list))
 
-            # measure accuracy and record loss
-            prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-            losses.update(loss.item(), input.size(0))
-            top1.update(prec1.item(), input.size(0))
-            top5.update(prec5.item(), input.size(0))
-
         print_log(
-            '  **Test** Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f} Error@1 {error1:.3f}'
-            .format(top1=top1, top5=top5, error1=100 - top1.avg), log)
+            '  **Test** MCC {mcc_meter.avg:.3f} Error@MCC {error_mcc:.3f}'
+            .format(mcc_meter=mcc_meter, error_mcc=100 - mcc_meter.avg), log)
 
+    # Đảm bảo luôn trả về ba giá trị
     if summary_output:
         output_summary = np.concatenate(output_summary, axis=0).flatten()
-        return top1.avg, top5.avg, losses.avg, output_summary
     else:
-        return top1.avg, top5.avg, losses.avg
+        output_summary = None
+
+    return mcc_meter.avg, losses.avg, output_summary
 
 
 def print_log(print_string, log):
@@ -1079,10 +1087,10 @@ def print_log(print_string, log):
 def save_checkpoint(state, is_best, save_path, filename, log):
     filename = os.path.join(save_path, filename)
     torch.save(state, filename)
-    if is_best:  # copy the checkpoint to the best model if it is the best_accuracy
+    if is_best:  # copy the checkpoint to the best model if it is the best_mcc
         bestname = os.path.join(save_path, 'model_best.pth.tar')
         shutil.copyfile(filename, bestname)
-        print_log("=> Obtain best accuracy, and update the best model", log)
+        print_log("=> Obtain best mcc, and update the best model", log)
 
 
 def adjust_learning_rate(optimizer, epoch, gammas, schedule):
@@ -1107,12 +1115,18 @@ def adjust_learning_rate(optimizer, epoch, gammas, schedule):
 
     return lr, mu
 
-def accuracy2(outputs_label, outputs_cat, outputs_sub_cat, y_label_batch, y_cat_batch, y_sub_cat_batch, topk=(1, )):
-    """Tính độ chính xác cho từng đầu ra của mô hình (label, category, sub-category)"""
-    with torch.no_grad():
-        maxk = max(topk)
 
-        # Đảm bảo target có ít nhất một chiều
+def mcc_score(preds, targets):
+    """Compute the Matthews Correlation Coefficient (MCC) for a set of predictions and true targets."""
+    preds = preds.cpu().numpy()
+    targets = targets.cpu().numpy()
+    return matthews_corrcoef(targets, preds)
+
+
+def mcc2(outputs_label, outputs_cat, outputs_sub_cat, y_label_batch, y_cat_batch, y_sub_cat_batch):
+    """Compute MCC for each output of the model (label, category, sub-category)."""
+    with torch.no_grad():
+        # Ensure target has at least one dimension
         if y_label_batch.dim() == 0:
             y_label_batch = y_label_batch.unsqueeze(0)
         if y_cat_batch.dim() == 0:
@@ -1120,78 +1134,50 @@ def accuracy2(outputs_label, outputs_cat, outputs_sub_cat, y_label_batch, y_cat_
         if y_sub_cat_batch.dim() == 0:
             y_sub_cat_batch = y_sub_cat_batch.unsqueeze(0)
 
-        batch_size = y_label_batch.size(0)
+        # Get the predicted classes (top-1 prediction) for each output
+        _, pred_label = outputs_label.topk(1, 1, True, True)
+        _, pred_cat = outputs_cat.topk(1, 1, True, True)
+        _, pred_sub_cat = outputs_sub_cat.topk(1, 1, True, True)
 
-        if outputs_label.dim() != 2 or outputs_cat.dim() != 2 or outputs_sub_cat.dim() != 2:
-            raise ValueError("Outputs must have dimension [batch_size, num_classes].")
+        # Compute MCC for each output type
+        mcc_label = mcc_score(pred_label.view(-1), y_label_batch)
+        mcc_cat = mcc_score(pred_cat.view(-1), y_cat_batch)
+        mcc_sub_cat = mcc_score(pred_sub_cat.view(-1), y_sub_cat_batch)
 
-        # Tính độ chính xác top-k cho từng loại đầu ra
-        res_label = []
-        res_cat = []
-        res_sub_cat = []
+        return mcc_label, mcc_cat, mcc_sub_cat
 
-        # Top-k cho đầu ra nhãn (label)
-        _, pred_label = outputs_label.topk(maxk, 1, True, True)
-        pred_label = pred_label.t()
-        correct_label = pred_label.eq(y_label_batch.view(1, -1).expand_as(pred_label))
-        for k in topk:
-            correct_k = correct_label[:k].reshape(-1).float().sum(0)
-            res_label.append(correct_k.mul_(100.0 / batch_size))
 
-        # Top-k cho đầu ra danh mục (category)
-        _, pred_cat = outputs_cat.topk(maxk, 1, True, True)
-        pred_cat = pred_cat.t()
-        correct_cat = pred_cat.eq(y_cat_batch.view(1, -1).expand_as(pred_cat))
-        for k in topk:
-            correct_k = correct_cat[:k].reshape(-1).float().sum(0)
-            res_cat.append(correct_k.mul_(100.0 / batch_size))
-
-        # Top-k cho đầu ra danh mục con (sub-category)
-        _, pred_sub_cat = outputs_sub_cat.topk(maxk, 1, True, True)
-        pred_sub_cat = pred_sub_cat.t()
-        correct_sub_cat = pred_sub_cat.eq(y_sub_cat_batch.view(1, -1).expand_as(pred_sub_cat))
-        for k in topk:
-            correct_k = correct_sub_cat[:k].reshape(-1).float().sum(0)
-            res_sub_cat.append(correct_k.mul_(100.0 / batch_size))
-
-        return res_label, res_cat, res_sub_cat
-
-def accuracy(output, target, topk=(1, )):
-    """Computes the precision@k for the specified values of k"""
+def mcc(output, target):
+    """Compute the Matthews Correlation Coefficient (MCC) for the given output and target."""
     with torch.no_grad():
-        maxk = max(topk)
         # Ensure target has at least one dimension
         if target.dim() == 0:
             target = target.unsqueeze(0)
 
-        batch_size = target.size(0)
-        _, pred = output.topk(maxk, 1, True, True)
-        pred = pred.t()
-        correct = pred.eq(target.view(1, -1).expand_as(pred))
-        res = []
-        for k in topk:
-            correct_k = correct[:k].reshape(-1).float().sum(0)
-            res.append(correct_k.mul_(100.0 / batch_size))
-        return res
+        # Get the predicted classes (top-1 prediction)
+        _, pred = output.topk(1, 1, True, True)
+        return mcc_score(pred.view(-1), target)
 
 
-def accuracy_logger(base_dir, epoch, train_accuracy, test_accuracy):
-    file_name = 'accuracy.txt'
-    file_path = "%s/%s" % (base_dir, file_name)
-    # create and format the log file if it does not exists
+def mcc_logger(base_dir, epoch, train_mcc, test_mcc):
+    file_name = 'mcc.txt'
+    file_path = f"{base_dir}/{file_name}"
+
+    # Create and format the log file if it does not exist
     if not os.path.exists(file_path):
-        create_log = open(file_path, 'w')
-        create_log.write('epochs train test\n')
-        create_log.close()
+        with open(file_path, 'w') as create_log:
+            create_log.write('epoch train_mcc test_mcc\n')
 
-    recorder = {}
-    recorder['epoch'] = epoch
-    recorder['train'] = train_accuracy
-    recorder['test'] = test_accuracy
-    # append the epoch index, train accuracy and test accuracy:
-    with open(file_path, 'a') as accuracy_log:
-        accuracy_log.write(
-            '{epoch}       {train}    {test}\n'.format(**recorder))
+    # Record epoch, train MCC, and test MCC
+    recorder = {
+        'epoch': epoch,
+        'train_mcc': train_mcc,
+        'test_mcc': test_mcc
+    }
+
+    # Append to log
+    with open(file_path, 'a') as mcc_log:
+        mcc_log.write('{epoch} {train_mcc:.4f} {test_mcc:.4f}\n'.format(**recorder))
 
 
 if __name__ == '__main__':
