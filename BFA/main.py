@@ -197,8 +197,8 @@ class quan_Conv1d(nn.Conv1d):
 
 
 class CustomModel(nn.Module):
-    def __init__(self, input_size=69, hidden_size1=128, hidden_size2=64, hidden_size3=32,
-                 hidden_size4=16, output_size=9):
+    def __init__(self, input_size=69, hidden_size1=32, hidden_size2=64, hidden_size3=128,
+                 hidden_size4=100, output_size=5):
         super(CustomModel, self).__init__()
         self.fc1 = quan_Conv1d(input_size, hidden_size1, kernel_size=3, stride=2, padding=1)
         self.pool = nn.AdaptiveMaxPool1d(1)
@@ -212,8 +212,8 @@ class CustomModel(nn.Module):
         self.stage_3 = quan_Conv1d(hidden_size3, hidden_size4, kernel_size=3, stride=2, padding=1)
         self.stage_3_1 = quan_Conv1d(hidden_size4, hidden_size4, kernel_size=3, stride=2, padding=1)
 
-        self.avgpool = nn.AdaptiveAvgPool1d(1)
-        self.dropout = nn.Dropout(p=0.4)  # Dropout layer to reduce overfitting
+        #self.avgpool = nn.AdaptiveAvgPool1d(1)
+        self.dropout = nn.Dropout(p=0.2)  # Dropout layer to reduce overfitting
 
         self.classifier = CustomBlock(hidden_size4, output_size)
 
@@ -239,7 +239,7 @@ class CustomModel(nn.Module):
         x = self.stage_3_1(x)
         x = F.relu(self.pool(x), inplace=True)
 
-        x = self.avgpool(x)
+       # x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
 
@@ -562,17 +562,19 @@ def main():
         data.replace([np.inf, -np.inf], np.nan, inplace=True)
         data.fillna(0, inplace=True)
         data = data.drop_duplicates()
-        datalabel = data[['Sub_Cat']]
+        datalabel = data[['Cat']]
         data = data.drop(columns=['Label', 'Cat', 'Sub_Cat'])
 
         scaler = StandardScaler()
-        data = scaler.fit_transform(data)
+        onc = LabelEncoder()
         # Tách dữ liệu thành tập huấn luyện và tập kiểm tra
         X_train, X_test, y_train, y_test = train_test_split(data, datalabel, test_size=0.2, random_state=100)
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
 
         # Chuyển đổi y_train và y_test thành mã số
-        y_train, _ = pd.factorize(y_train['Sub_Cat'])  # Chuyển đổi thành mã số
-        y_test, _ = pd.factorize(y_test['Sub_Cat'])  # Chuyển đổi thành mã số
+        y_train = onc.fit_transform(y_train['Cat'].to_numpy().reshape(-1, 1))  # Chuyển đổi thành mã số
+        y_test = onc.transform(y_test['Cat'].to_numpy().reshape(-1, 1))  # Chuyển đổi thành mã số
 
         # Kiểm tra kiểu dữ liệu của y_train và y_test
         print("Kiểu dữ liệu y_train:", y_train.dtype)
@@ -632,7 +634,7 @@ def main():
 
     # define loss function (criterion) and optimizer
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
     # separate the parameters thus param groups can be updated by different optimizer
     all_param = [
@@ -710,14 +712,14 @@ def main():
 
     # update the step_size once the model is loaded. This is used for quantization.
     for m in net.modules():
-        if isinstance(m, quan_Conv2d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock) or m.__class__.__name__ == "CustomBlock" or m.__class__.__name__ == "quan_Conv1d":
+        if isinstance(m, quan_Conv1d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock) or m.__class__.__name__ == "CustomBlock" or m.__class__.__name__ == "quan_Conv1d":
             # simple step size update based on the pretrained model or weight init
             m.__reset_stepsize__()
 
     # block for weight reset
     if args.reset_weight:
         for m in net.modules():
-            if isinstance(m, quan_Conv2d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock):
+            if isinstance(m, quan_Conv1d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock):
                 m.__reset_weight__()
                 # print(m.weight)
 
@@ -1031,7 +1033,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
     return mcc_meter.avg, losses.avg
 
 
-def validate(val_loader, model, criterion, log, summary_output=True):
+def validate(val_loader, model, criterion, log, summary_output=False):
     losses = AverageMeter()
     mcc_meter = AverageMeter()  # Sử dụng MCC thay vì accuracy
 
@@ -1060,19 +1062,17 @@ def validate(val_loader, model, criterion, log, summary_output=True):
             # Tóm tắt output nếu cần
             if summary_output:
                 tmp_list = output.max(1, keepdim=True)[1].flatten().cpu().numpy()
-                output_summary.append(tmp_list if isinstance(tmp_list, np.ndarray) else np.array(tmp_list))
-
+                output_summary.extend(tmp_list)
         print_log(
             '  **Test** MCC {mcc_meter.avg:.3f} Error@MCC {error_mcc:.3f}'
             .format(mcc_meter=mcc_meter, error_mcc=100 - mcc_meter.avg), log)
 
     # Đảm bảo luôn trả về ba giá trị
     if summary_output:
-        output_summary = np.concatenate(output_summary, axis=0).flatten()
+        output_summary = np.array(output_summary)  # Trực tiếp chuyển thành mảng NumPy
+        return mcc_meter.avg, losses.avg, output_summary
     else:
-        output_summary = None
-
-    return mcc_meter.avg, losses.avg, output_summary
+        return mcc_meter.avg, losses.avg
 
 
 def print_log(print_string, log):
