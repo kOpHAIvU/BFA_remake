@@ -212,7 +212,7 @@ class CustomModel(nn.Module):
         self.stage_3 = quan_Conv1d(hidden_size3, hidden_size4, kernel_size=3, stride=2, padding=1)
         self.stage_3_1 = quan_Conv1d(hidden_size4, hidden_size4, kernel_size=3, stride=2, padding=1)
 
-        #self.avgpool = nn.AdaptiveAvgPool1d(1)
+        # self.avgpool = nn.AdaptiveAvgPool1d(1)
         self.dropout = nn.Dropout(p=0.2)  # Dropout layer to reduce overfitting
 
         self.classifier = CustomBlock(hidden_size4, output_size)
@@ -239,7 +239,7 @@ class CustomModel(nn.Module):
         x = self.stage_3_1(x)
         x = F.relu(self.pool(x), inplace=True)
 
-       # x = self.avgpool(x)
+        # x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
 
@@ -250,7 +250,7 @@ model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
 
-    ################# Options ######################
+################# Options ######################
 parser = argparse.ArgumentParser(
     description='Training network for image classification',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -269,7 +269,7 @@ parser.add_argument('--arch',
                     default='lbcnn',
                     choices=model_names,
                     help='model architecture: ' + ' | '.join(model_names) +
-                    ' (default: resnext29_8_64)')
+                         ' (default: resnext29_8_64)')
 # Optimization options
 parser.add_argument('--epochs',
                     type=int,
@@ -417,6 +417,7 @@ if args.use_cuda:
     torch.cuda.manual_seed_all(args.manualSeed)
 
 cudnn.benchmark = True
+
 
 ###############################################################################
 ###############################################################################
@@ -643,34 +644,33 @@ def main():
     ]
 
     step_param = [
-        param for name, param in net.named_parameters() if 'step_size' in name 
+        param for name, param in net.named_parameters() if 'step_size' in name
     ]
 
     if args.optimizer == "SGD":
         print("using SGD as optimizer")
         optimizer = torch.optim.SGD(all_param,
-                                    lr=0.01,
-                                    momentum=0.9,
-                                    weight_decay=0.0001,
+                                    lr=state['learning_rate'],
+                                    momentum=state['momentum'],
+                                    weight_decay=state['decay'],
                                     nesterov=True)
 
     elif args.optimizer == "Adam":
         print("using Adam as optimizer")
         optimizer = torch.optim.Adam(filter(lambda param: param.requires_grad,
                                             all_param),
-                                     lr=0.01,
-                                     momentum=0.9,
-                                     weight_decay=0.0001)
+                                     lr=state['learning_rate'],
+                                     weight_decay=state['decay'])
 
     elif args.optimizer == "RMSprop":
         print("using RMSprop as optimizer")
         optimizer = torch.optim.RMSprop(
             filter(lambda param: param.requires_grad, net.parameters()),
-            lr=0.01,
+            lr=state['learning_rate'],
             alpha=0.99,
             eps=1e-08,
-            momentum=0.9,
-            weight_decay=0.0001)
+            weight_decay=0,
+            momentum=0)
 
     if args.use_cuda:
         net.cuda()
@@ -705,14 +705,15 @@ def main():
     else:
         print_log(
             "=> do not use any checkpoint for {} model".format(args.arch), log)
-        
+
     # Configure the quantization bit-width
     if args.quan_bitwidth is not None:
         change_quan_bitwidth(net, args.quan_bitwidth)
 
     # update the step_size once the model is loaded. This is used for quantization.
     for m in net.modules():
-        if isinstance(m, quan_Conv1d) or isinstance(m, quan_Linear) or isinstance(m, CustomBlock) or m.__class__.__name__ == "CustomBlock" or m.__class__.__name__ == "quan_Conv1d":
+        if isinstance(m, quan_Conv1d) or isinstance(m, quan_Linear) or isinstance(m,
+                                                                                  CustomBlock) or m.__class__.__name__ == "CustomBlock" or m.__class__.__name__ == "quan_Conv1d":
             # simple step size update based on the pretrained model or weight init
             m.__reset_stepsize__()
 
@@ -767,7 +768,6 @@ def main():
             if isinstance(metric, (list, np.ndarray, torch.Tensor)):
                 metric = metric[0] if isinstance(metric, (list, np.ndarray)) else metric.item()
 
-
         # Ensure that train_loss, train_mcc, val_loss, val_mcc are scalar values
         train_loss = train_loss[0] if isinstance(train_loss, (list, np.ndarray)) else (
             train_loss.item() if isinstance(train_loss, torch.Tensor) else train_loss)
@@ -777,7 +777,6 @@ def main():
             val_loss.item() if isinstance(val_loss, torch.Tensor) else val_loss)
         val_mcc = val_mcc[0] if isinstance(val_mcc, (list, np.ndarray)) else (
             val_mcc.item() if isinstance(val_mcc, torch.Tensor) else val_mcc)
-
 
         # Check for NaN or Inf
         if any(np.isnan(x) or np.isinf(x) for x in [train_loss, train_mcc, val_loss, val_mcc]):
@@ -789,12 +788,19 @@ def main():
         is_best = val_mcc >= recorder.max_mcc(False)
 
         # Save checkpoint
-        checkpoint_state = {'state_dict': net.state_dict()} if args.model_only else {
-            'epoch': epoch + 1, 'arch': args.arch,
-            'state_dict': net.state_dict(), 'recorder': recorder,
-            'optimizer': optimizer.state_dict(),
-        }
-        save_checkpoint(checkpoint_state, is_best, args.save_path, 'checkpoint.pth.tar', log)
+        if args.model_only:
+            checkpoint_state = {'state_dict': net.state_dict}
+        else:
+            checkpoint_state = {
+                'epoch': epoch + 1,
+                'arch': args.arch,
+                'state_dict': net.state_dict(),
+                'recorder': recorder,
+                'optimizer': optimizer.state_dict(),
+            }
+
+        save_checkpoint(checkpoint_state, is_best, args.save_path,
+                        'checkpoint.pth.tar', log)
 
         # Measure elapsed time
         epoch_time.update(time.time() - start_time)
@@ -805,14 +811,6 @@ def main():
 
         # Save additional MCC log for plotting
         mcc_logger(base_dir=args.save_path, epoch=epoch, train_mcc=train_mcc, test_mcc=val_mcc)
-
-        # TensorBoard logging
-        writer.add_scalar('learning_rate', current_learning_rate, epoch + 1)
-        writer.add_scalar('momentum', current_momentum, epoch + 1)
-        writer.add_scalar('loss/train_loss', train_loss, epoch + 1)
-        writer.add_scalar('loss/test_loss', val_loss, epoch + 1)
-        writer.add_scalar('mcc/train_mcc', train_mcc, epoch + 1)
-        writer.add_scalar('mcc/test_mcc', val_mcc, epoch + 1)
 
         # ============ TensorBoard logging ============#
         for name, param in net.named_parameters():
@@ -833,7 +831,15 @@ def main():
                                       epoch + 1)
 
         writer.add_scalar('total_weight_change', total_weight_change, epoch + 1)
+        print('total weight changes:', total_weight_change)
         writer.add_scalar('time/epoch_duration', epoch_time.val, epoch + 1)
+        # TensorBoard logging
+        writer.add_scalar('learning_rate', current_learning_rate, epoch + 1)
+        writer.add_scalar('momentum', current_momentum, epoch + 1)
+        writer.add_scalar('loss/train_loss', train_loss, epoch + 1)
+        writer.add_scalar('loss/test_loss', val_loss, epoch + 1)
+        writer.add_scalar('mcc/train_mcc', train_mcc, epoch + 1)
+        writer.add_scalar('mcc/test_mcc', val_mcc, epoch + 1)
     # ============ TensorBoard logging ============#
     writer.close()
     log.close()
@@ -861,11 +867,11 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
 
     # evaluate the test mcc of clean model
     val_acc_top1, val_acc_top5, val_loss, output_summary = validate(test_loader, model,
-                                                    attacker.criterion, log, summary_output=True)
+                                                                    attacker.criterion, log, summary_output=True)
     tmp_df = pd.DataFrame(output_summary, columns=['top-1 output'])
     tmp_df['BFA iteration'] = 0
     tmp_df.to_csv(os.path.join(args.save_path, 'output_summary_{}_BFA_0.csv'.format(args.arch)),
-                                        index=False)
+                  index=False)
 
     writer.add_scalar('attack/val_top1_acc', val_acc_top1, 0)
     writer.add_scalar('attack/val_top5_acc', val_acc_top5, 0)
@@ -874,10 +880,10 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
     print_log('k_top is set to {}'.format(args.k_top), log)
     print_log('Attack sample size is {}'.format(data.size()[0]), log)
     end = time.time()
-    
-    df = pd.DataFrame() #init a empty dataframe for logging
+
+    df = pd.DataFrame()  # init a empty dataframe for logging
     last_val_acc_top1 = val_acc_top1
-    
+
     for i_iter in range(N_iter):
         print_log('**********************************', log)
         if not random_attack:
@@ -904,11 +910,11 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
                    iter_time=iter_time) + time_string(), log)
         try:
             print_log('loss before attack: {:.4f}'.format(attacker.loss.item()),
-                    log)
+                      log)
             print_log('loss after attack: {:.4f}'.format(attacker.loss_max), log)
         except:
             pass
-        
+
         print_log('bit flips: {:.0f}'.format(attacker.bit_counter), log)
         print_log('hamming_dist: {:.0f}'.format(h_dist), log)
 
@@ -922,13 +928,12 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
         tmp_df = pd.DataFrame(output_summary, columns=['top-1 output'])
         tmp_df['BFA iteration'] = i_iter + 1
         tmp_df.to_csv(os.path.join(args.save_path, 'output_summary_{}_BFA_{}.csv'.format(args.arch, i_iter + 1)),
-                                    index=False)
-    
-        
+                      index=False)
+
         # add additional info for logging
         acc_drop = last_val_acc_top1 - val_acc_top1
         last_val_acc_top1 = val_acc_top1
-        
+
         # print(attack_log)
         for i in range(attack_log.__len__()):
             attack_log[i].append(val_acc_top1)
@@ -946,7 +951,7 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
             'iteration Time {iter_time.val:.3f} ({iter_time.avg:.3f})'.format(
                 iter_time=iter_time), log)
         end = time.time()
-        
+
         # Stop the attack if the mcc is below the configured break_acc.
         if args.dataset == 'cifar10':
             break_acc = 11.0
@@ -954,11 +959,11 @@ def perform_attack(attacker, model, model_clean, train_loader, test_loader,
             break_acc = 0.2
         # if val_acc_top1 <= break_acc:
         #     break
-        
+
     # attack profile
     column_list = ['module idx', 'bit-flip idx', 'module name', 'weight idx',
-                  'weight before attack', 'weight after attack', 'validation mcc',
-                  'mcc drop']
+                   'weight before attack', 'weight after attack', 'validation mcc',
+                   'mcc drop']
     df.columns = column_list
 
     df['trial seed'] = args.manualSeed
@@ -995,36 +1000,38 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
         loss = criterion(output, target)
 
         if args.clustering:
-            loss += clustering_loss(model, args.lambda_coeff)
+            print(f"Clustering loss applied with lambda: {args.lambda_coeff}")
+        loss += clustering_loss(model, args.lambda_coeff)
 
-        # Compute MCC and record loss
-        mcc_value = mcc(output.data, target)  # MCC calculation instead of topk accuracy
-        losses.update(loss.item(), input.size(0))
-        mcc_meter.update(mcc_value, input.size(0))
+    # Compute MCC and record loss
+    mcc_value = mcc(output.data, target)  # MCC calculation instead of topk accuracy
+    losses.update(loss.item(), input.size(0))
+    mcc_meter.update(mcc_value, input.size(0))
 
-        # Compute gradient and do SGD step
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+    # Compute gradient and do SGD step
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
 
-        # Measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
+    # Measure elapsed time
+    batch_time.update(time.time() - end)
+    end = time.time()
 
-        if i % args.print_freq == 0:
-            print_log(
-                '  Epoch: [{:03d}][{:03d}/{:03d}]   '
-                'Time {batch_time.val:.3f} ({batch_time.avg:.3f})   '
-                'Data {data_time.val:.3f} ({data_time.avg:.3f})   '
-                'Loss {loss.val:.4f} ({loss.avg:.4f})   '
-                'MCC {mcc_meter.val:.3f} ({mcc_meter.avg:.3f})   '.format(
-                    epoch,
-                    i,
-                    len(train_loader),
-                    batch_time=batch_time,
-                    data_time=data_time,
-                    loss=losses,
-                    mcc_meter=mcc_meter) + time_string(), log)
+    if i % args.print_freq == 0:
+        print_log(
+            '  Epoch: [{:03d}][{:03d}/{:03d}]   '
+            'Time {batch_time.val:.3f} ({batch_time.avg:.3f})   '
+            'Data {data_time.val:.3f} ({data_time.avg:.3f})   '
+            'Loss {loss.val:.4f} ({loss.avg:.4f})   '
+            'MCC {mcc_meter.val:.3f} ({mcc_meter.avg:.3f})   '.format(
+                epoch,
+                i,
+                len(train_loader),
+                batch_time=batch_time,
+                data_time=data_time,
+                loss=losses,
+                mcc_meter=mcc_meter) + time_string(), log)
+
 
     print_log(
         '  **Train** MCC {mcc_meter.avg:.3f} Error@MCC {error_mcc:.3f}'
@@ -1033,7 +1040,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log):
     return mcc_meter.avg, losses.avg
 
 
-def validate(val_loader, model, criterion, log, summary_output=False):
+def validate(val_loader, model, criterion, log, summary_output=True):
     losses = AverageMeter()
     mcc_meter = AverageMeter()  # Sử dụng MCC thay vì accuracy
 
@@ -1155,7 +1162,8 @@ def mcc(output, target):
             target = target.unsqueeze(0)
 
         # Get the predicted classes (top-1 prediction)
-        _, pred = output.topk(1, 1, True, True)
+        probabilities = F.softmax(output, dim=1)
+        _, pred = probabilities.topk(1, 1, True, True)
         return mcc_score(pred.view(-1), target)
 
 
