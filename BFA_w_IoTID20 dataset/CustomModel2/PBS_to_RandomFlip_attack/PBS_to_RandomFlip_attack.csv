@@ -1,0 +1,21 @@
+Bit Counter,Module,Weight Before Attack,Weight After Attack,Validation,MCC Drop
+2,classifier,"tensor(-8193., device='cuda:0')","tensor(-8193., device='cuda:0')",0.6417351393140422,0.20414945031809195
+103,classifier,"tensor(8192., device='cuda:0')","tensor(8192., device='cuda:0')",0.5701503657331787,0.07158477358086357
+204,classifier,"tensor(8192., device='cuda:0')","tensor(8192., device='cuda:0')",0.5701503657331787,0.0
+305,classifier,"tensor(1024., device='cuda:0')","tensor(1024., device='cuda:0')",0.5642508796278857,0.005899486105293006
+406,classifier,"tensor(1., device='cuda:0')","tensor(1., device='cuda:0')",0.5642508796278857,0.0
+507,classifier,"tensor(-129., device='cuda:0')","tensor(-129., device='cuda:0')",0.44673147658081913,0.11751940304706654
+608,classifier,"tensor(64., device='cuda:0')","tensor(64., device='cuda:0')",0.44673147658081913,0.0
+709,classifier,"tensor(512., device='cuda:0')","tensor(512., device='cuda:0')",0.635513251291044,-0.18878177471022484
+810,classifier,"tensor(32., device='cuda:0')","tensor(32., device='cuda:0')",0.635513251291044,0.0
+911,classifier,"tensor(-257., device='cuda:0')","tensor(-257., device='cuda:0')",0.635513251291044,0.0
+1012,classifier,"tensor(-9., device='cuda:0')","tensor(-9., device='cuda:0')",0.635513251291044,0.0
+1113,classifier,"tensor(-129., device='cuda:0')","tensor(-129., device='cuda:0')",0.635513251291044,0.0
+1214,classifier,"tensor(16384., device='cuda:0')","tensor(16384., device='cuda:0')",0.6345016214662702,0.0010116298247737632
+1315,classifier,"tensor(-513., device='cuda:0')","tensor(-513., device='cuda:0')",0.6345016214662702,0.0
+1416,classifier,"tensor(-513., device='cuda:0')","tensor(-513., device='cuda:0')",0.6768835137908712,-0.04238189232460099
+1517,classifier,"tensor(-5., device='cuda:0')","tensor(-5., device='cuda:0')",0.6768835137908712,0.0
+1618,classifier,"tensor(4096., device='cuda:0')","tensor(4096., device='cuda:0')",0.6768835137908712,0.0
+1719,classifier,"tensor(512., device='cuda:0')","tensor(512., device='cuda:0')",0.6768835137908712,0.0
+1820,classifier,"tensor(8., device='cuda:0')","tensor(8., device='cuda:0')",0.6768835137908712,0.0
+1921,classifier,"tensor(32., device='cuda:0')","tensor(32., device='cuda:0')",0.6316712316557384,0.04521228213513284
