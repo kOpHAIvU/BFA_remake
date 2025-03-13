@@ -1,0 +1,21 @@
+Bit Counter,Module,Weight Before Attack,Weight After Attack,Validation,MCC Drop
+1,stage_1.13.conv_a,"tensor(-17., device='cuda:0')","tensor(-17., device='cuda:0')",0.7489633855642106,1.9403811985396757e-05
+2,stage_1.3.conv_a,"tensor(16., device='cuda:0')","tensor(16., device='cuda:0')",0.7489633855642106,0.0
+3,stage_1.3.conv_a,"tensor(-17., device='cuda:0')","tensor(-17., device='cuda:0')",0.7489633855642106,0.0
+4,stage_1.14.conv_b,"tensor(127., device='cuda:0')","tensor(127., device='cuda:0')",0.7070677237732745,0.04189566179093607
+5,stage_2.7.conv_b,"tensor(-2., device='cuda:0')","tensor(-2., device='cuda:0')",0.7070677237732745,0.0
+6,stage_3.7.conv_a,"tensor(-65., device='cuda:0')","tensor(-65., device='cuda:0')",0.7070375152207243,3.0208552550203827e-05
+7,stage_2.5.conv_a,"tensor(-33., device='cuda:0')","tensor(-33., device='cuda:0')",0.7070375152207243,0.0
+8,stage_3.14.conv_b,"tensor(2., device='cuda:0')","tensor(2., device='cuda:0')",0.7070375152207243,0.0
+9,stage_3.14.conv_b,"tensor(-5., device='cuda:0')","tensor(-5., device='cuda:0')",0.707046904841846,-9.389621121624891e-06
+10,stage_1.9.conv_a,"tensor(-2., device='cuda:0')","tensor(-2., device='cuda:0')",0.707046904841846,0.0
+11,stage_3.8.conv_a,"tensor(1., device='cuda:0')","tensor(1., device='cuda:0')",0.707046904841846,0.0
+12,stage_2.2.conv_a,"tensor(-2., device='cuda:0')","tensor(-2., device='cuda:0')",0.707046904841846,0.0
+13,stage_1.3.conv_a,"tensor(-2., device='cuda:0')","tensor(-2., device='cuda:0')",0.7070233144361583,2.3590405687667904e-05
+14,stage_3.11.conv_a,"tensor(-9., device='cuda:0')","tensor(-9., device='cuda:0')",0.7070233144361583,0.0
+15,stage_1.8.conv_b,"tensor(-5., device='cuda:0')","tensor(-5., device='cuda:0')",0.7070233144361583,0.0
+16,stage_2.2.conv_b,"tensor(32., device='cuda:0')","tensor(32., device='cuda:0')",0.7070233144361583,0.0
+17,stage_2.15.conv_a,"tensor(64., device='cuda:0')","tensor(64., device='cuda:0')",0.7070233144361583,0.0
+18,stage_3.0.conv_a,"tensor(-2., device='cuda:0')","tensor(-2., device='cuda:0')",0.7070233144361583,0.0
+19,stage_1.13.conv_a,"tensor(-128., device='cuda:0')","tensor(-128., device='cuda:0')",0.7070233144361583,0.0
+20,stage_3.2.conv_b,"tensor(-128., device='cuda:0')","tensor(-128., device='cuda:0')",0.7070233144361583,0.0

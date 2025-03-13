@@ -1,0 +1,21 @@
+Bit Counter,Module,Weight Before Attack,Weight After Attack,Validation,MCC Drop
+1,classifier,"tensor(2048., device='cuda:0')","tensor(2048., device='cuda:0')",0.23101271958075542,0.48200694241496955
+2,classifier,"tensor(-513., device='cuda:0')","tensor(-513., device='cuda:0')",0.23101271958075542,0.0
+3,classifier,"tensor(2., device='cuda:0')","tensor(2., device='cuda:0')",0.21823670084493965,0.01277601873581577
+4,classifier,"tensor(-16385., device='cuda:0')","tensor(-16385., device='cuda:0')",0.00140652628752499,0.21683017455741466
+5,classifier,"tensor(4096., device='cuda:0')","tensor(4096., device='cuda:0')",0.00140652628752499,0.0
+6,classifier,"tensor(2048., device='cuda:0')","tensor(2048., device='cuda:0')",-0.007802198359708133,0.009208724647233123
+7,classifier,"tensor(-2., device='cuda:0')","tensor(-2., device='cuda:0')",-0.007802198359708133,0.0
+8,classifier,"tensor(256., device='cuda:0')","tensor(256., device='cuda:0')",-0.007802198359708133,0.0
+9,classifier,"tensor(-17., device='cuda:0')","tensor(-17., device='cuda:0')",-0.007802198359708133,0.0
+10,classifier,"tensor(-9., device='cuda:0')","tensor(-9., device='cuda:0')",-0.007802198359708133,0.0
+11,classifier,"tensor(-3., device='cuda:0')","tensor(-3., device='cuda:0')",-0.007802198359708133,0.0
+12,classifier,"tensor(-5., device='cuda:0')","tensor(-5., device='cuda:0')",-0.007802198359708133,0.0
+13,classifier,"tensor(-5., device='cuda:0')","tensor(-5., device='cuda:0')",-0.007802198359708133,0.0
+14,classifier,"tensor(32767., device='cuda:0')","tensor(32767., device='cuda:0')",-0.007802198359708133,0.0
+15,classifier,"tensor(32767., device='cuda:0')","tensor(32767., device='cuda:0')",-0.007802198359708133,0.0
+16,classifier,"tensor(-1025., device='cuda:0')","tensor(-1025., device='cuda:0')",-0.007802198359708133,0.0
+17,classifier,"tensor(-5., device='cuda:0')","tensor(-5., device='cuda:0')",-0.007802198359708133,0.0
+18,classifier,"tensor(-8193., device='cuda:0')","tensor(-8193., device='cuda:0')",-0.007802198359708133,0.0
+19,classifier,"tensor(256., device='cuda:0')","tensor(256., device='cuda:0')",-0.007802198359708133,0.0
+20,classifier,"tensor(-4097., device='cuda:0')","tensor(-4097., device='cuda:0')",-0.007802198359708133,0.0

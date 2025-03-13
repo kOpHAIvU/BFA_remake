@@ -1,0 +1,21 @@
+Bit Counter,Module,Weight Before Attack,Weight After Attack,Validation,MCC Drop
+101,classifier,0.041750308126211166,0.0,0.6612743462999665,0.051745315695758465
+202,classifier,No attack,No attack,0.6612743462999665,0.0
+303,classifier,No attack,No attack,0.6612743462999665,0.0
+404,classifier,No attack,No attack,0.6612743462999665,0.0
+505,classifier,No attack,No attack,0.2115361241454017,0.4497382221545648
+606,classifier,No attack,No attack,0.2115361241454017,0.0
+707,classifier,No attack,No attack,0.1624831167090772,0.049053007436324514
+808,classifier,No attack,No attack,0.1624831167090772,0.0
+909,classifier,No attack,No attack,0.1624831167090772,0.0
+1010,classifier,No attack,No attack,0.12425463480526223,0.03822848190381496
+1111,classifier,No attack,No attack,0.12425463480526223,0.0
+1212,classifier,No attack,No attack,0.12425463480526223,0.0
+1313,classifier,No attack,No attack,0.12425463480526223,0.0
+1414,classifier,No attack,No attack,0.12425463480526223,0.0
+1515,classifier,No attack,No attack,0.12160618001316109,0.002648454792101143
+1616,classifier,No attack,No attack,0.12160618001316109,0.0
+1717,classifier,No attack,No attack,0.12160618001316109,0.0
+1818,classifier,No attack,No attack,0.12160618001316109,0.0
+1919,classifier,No attack,No attack,0.12160618001316109,0.0
+2020,classifier,No attack,No attack,0.09019857417360432,0.031407605839556776

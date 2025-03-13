@@ -27,3 +27,20 @@
 2025-03-10 10:57:01,031 - Torch version: 2.2.2+cu118
 2025-03-10 10:57:01,033 - CUDNN version: 8907
 2025-03-10 10:57:10,051 - => creating model 'CustomModel'
+2025-03-10 11:42:12,585 - No such comm target registered: jupyter.widget.control
+2025-03-10 11:42:12,587 - No such comm: 101992fa-7f01-4686-8014-2762739948cd
+2025-03-10 12:04:40,931 - No such comm target registered: jupyter.widget.control
+2025-03-10 12:04:40,934 - No such comm: 3ad8342a-b591-48da-abe1-d08257a0b578
+2025-03-10 12:05:10,497 - No such comm target registered: jupyter.widget.control
+2025-03-10 12:05:10,499 - No such comm: b4a809e2-c37e-4958-87bc-58c9a577244a
+2025-03-10 12:07:37,538 - No such comm target registered: jupyter.widget.control
+2025-03-10 12:07:37,540 - No such comm: 95639c27-41fc-4419-81ab-dfc87d1fa6ee
+2025-03-10 12:07:50,559 - Save path: ./save/attack_random
+2025-03-10 12:07:50,560 - State: {'arch': 'CustomModel', 'attack_sample_size': 128, 'bfa': True, 'clustering': False, 'data_path': '../../dataset/', 'dataset': 'inid', 'decay': 0.0001, 'enable_bfa': False, 'epochs': 20, 'evaluate': False, 'gammas': [0.1, 0.1], 'gpu_id': 0, 'k_top': None, 'lambda_coeff': 0.001, 'learning_rate': 0.001, 'manualSeed': None, 'momentum': 0.9, 'n_iter': 20, 'ngpu': 1, 'optimizer': 'SGD', 'print_freq': 100, 'progressive_bit_search': True, 'quan_bitwidth': 16, 'random_bfa': True, 'random_flip': True, 'reset_weight': False, 'resume': 'save\\model_best.pth.tar', 'save_path': './save/attack_random', 'schedule': [80, 120], 'start_epoch': 0, 'test_batch_size': 32, 'use_cuda': True, 'workers': 4}
+2025-03-10 12:07:50,561 - Random Seed: None
+2025-03-10 12:07:50,561 - Python version: 3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
+2025-03-10 12:07:50,562 - Torch version: 2.2.2+cu118
+2025-03-10 12:07:50,563 - CUDNN version: 8907
+2025-03-10 12:07:55,923 - => creating model 'CustomModel'
+2025-03-10 16:52:51,062 - No such comm target registered: jupyter.widget.control
+2025-03-10 16:52:51,064 - No such comm: 8214edfb-9a3c-4727-bc3a-56eb2e08c15a
