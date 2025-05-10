@@ -295,3 +295,40 @@
 2025-03-12 14:16:02,236 - Torch version: 2.2.2+cu118
 2025-03-12 14:16:02,238 - CUDNN version: 8907
 2025-03-12 14:16:04,893 - => creating model 'CustomModel'
+2025-04-15 04:26:35,253 - Save path: ./save/attack_random
+2025-04-15 04:26:35,255 - State: {'arch': 'CustomModel', 'attack_sample_size': 128, 'bfa': True, 'clustering': False, 'data_path': '../../dataset/', 'dataset': 'inid', 'decay': 0.0001, 'enable_bfa': False, 'epochs': 20, 'evaluate': False, 'gammas': [0.1, 0.1], 'gpu_id': 0, 'k_top': None, 'lambda_coeff': 0.001, 'learning_rate': 0.001, 'manualSeed': None, 'momentum': 0.9, 'n_iter': 20, 'ngpu': 1, 'optimizer': 'SGD', 'print_freq': 100, 'progressive_bit_search': True, 'quan_bitwidth': 16, 'random_bfa': True, 'random_flip': True, 'reset_weight': False, 'resume': 'save\\model_best.pth.tar', 'save_path': './save/attack_random', 'schedule': [80, 120], 'start_epoch': 0, 'test_batch_size': 32, 'use_cuda': True, 'workers': 4}
+2025-04-15 04:26:35,255 - Random Seed: None
+2025-04-15 04:26:35,255 - Python version: 3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
+2025-04-15 04:26:35,256 - Torch version: 2.2.2+cu118
+2025-04-15 04:26:35,257 - CUDNN version: 8907
+2025-04-15 04:26:38,080 - => creating model 'CustomModel'
+2025-04-18 13:50:38,154 - Save path: ./save/attack_random
+2025-04-18 13:50:38,155 - State: {'arch': 'CustomModel', 'attack_sample_size': 128, 'bfa': True, 'clustering': False, 'data_path': '../../dataset/', 'dataset': 'inid', 'decay': 0.0001, 'enable_bfa': False, 'epochs': 20, 'evaluate': False, 'gammas': [0.1, 0.1], 'gpu_id': 0, 'k_top': None, 'lambda_coeff': 0.001, 'learning_rate': 0.001, 'manualSeed': None, 'momentum': 0.9, 'n_iter': 40, 'ngpu': 1, 'optimizer': 'SGD', 'print_freq': 100, 'progressive_bit_search': True, 'quan_bitwidth': 16, 'random_bfa': True, 'random_flip': True, 'reset_weight': False, 'resume': 'save\\model_best.pth.tar', 'save_path': './save/attack_random', 'schedule': [80, 120], 'start_epoch': 0, 'test_batch_size': 32, 'use_cuda': True, 'workers': 4}
+2025-04-18 13:50:38,155 - Random Seed: None
+2025-04-18 13:50:38,156 - Python version: 3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
+2025-04-18 13:50:38,156 - Torch version: 2.2.2+cu118
+2025-04-18 13:50:38,157 - CUDNN version: 8907
+2025-04-18 13:50:41,161 - => creating model 'CustomModel'
+2025-04-22 12:46:49,175 - Save path: ./save/attack_random
+2025-04-22 12:46:49,176 - State: {'arch': 'CustomModel', 'attack_sample_size': 128, 'bfa': True, 'clustering': False, 'data_path': '../../dataset/', 'dataset': 'inid', 'decay': 0.0001, 'enable_bfa': False, 'epochs': 20, 'evaluate': False, 'gammas': [0.1, 0.1], 'gpu_id': 0, 'k_top': None, 'lambda_coeff': 0.001, 'learning_rate': 0.001, 'manualSeed': None, 'momentum': 0.9, 'n_iter': 25, 'ngpu': 1, 'optimizer': 'SGD', 'print_freq': 100, 'progressive_bit_search': True, 'quan_bitwidth': 16, 'random_bfa': True, 'random_flip': True, 'reset_weight': False, 'resume': 'save\\model_best.pth.tar', 'save_path': './save/attack_random', 'schedule': [80, 120], 'start_epoch': 0, 'test_batch_size': 32, 'use_cuda': True, 'workers': 4}
+2025-04-22 12:46:49,176 - Random Seed: None
+2025-04-22 12:46:49,177 - Python version: 3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
+2025-04-22 12:46:49,177 - Torch version: 2.2.2+cu118
+2025-04-22 12:46:49,179 - CUDNN version: 8907
+2025-04-22 12:46:51,987 - => creating model 'CustomModel'
+2025-04-23 05:02:18,488 - Save path: ./save/attack_random
+2025-04-23 05:02:18,489 - State: {'arch': 'CustomModel', 'attack_sample_size': 128, 'bfa': True, 'clustering': False, 'data_path': '../../dataset/', 'dataset': 'inid', 'decay': 0.0001, 'enable_bfa': False, 'epochs': 20, 'evaluate': False, 'gammas': [0.1, 0.1], 'gpu_id': 0, 'k_top': None, 'lambda_coeff': 0.001, 'learning_rate': 0.001, 'manualSeed': None, 'momentum': 0.9, 'n_iter': 25, 'ngpu': 1, 'optimizer': 'SGD', 'print_freq': 100, 'progressive_bit_search': True, 'quan_bitwidth': 16, 'random_bfa': True, 'random_flip': True, 'reset_weight': False, 'resume': 'save\\model_best.pth.tar', 'save_path': './save/attack_random', 'schedule': [80, 120], 'start_epoch': 0, 'test_batch_size': 32, 'use_cuda': True, 'workers': 4}
+2025-04-23 05:02:18,490 - Random Seed: None
+2025-04-23 05:02:18,491 - Python version: 3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
+2025-04-23 05:02:18,491 - Torch version: 2.2.2+cu118
+2025-04-23 05:02:18,493 - CUDNN version: 8907
+2025-04-23 05:02:21,194 - => creating model 'CustomModel'
+2025-04-23 06:04:11,679 - No such comm target registered: jupyter.widget.control
+2025-04-23 06:04:11,682 - No such comm: 93e1cd08-d7a9-412c-b86e-457f22fe94df
+2025-04-23 13:46:02,572 - Save path: ./save/attack_random
+2025-04-23 13:46:02,573 - State: {'arch': 'CustomModel', 'attack_sample_size': 128, 'bfa': True, 'clustering': False, 'data_path': '../../dataset/', 'dataset': 'inid', 'decay': 0.0001, 'enable_bfa': False, 'epochs': 20, 'evaluate': False, 'gammas': [0.1, 0.1], 'gpu_id': 0, 'k_top': None, 'lambda_coeff': 0.001, 'learning_rate': 0.001, 'manualSeed': None, 'momentum': 0.9, 'n_iter': 25, 'ngpu': 1, 'optimizer': 'SGD', 'print_freq': 100, 'progressive_bit_search': True, 'quan_bitwidth': 16, 'random_bfa': True, 'random_flip': True, 'reset_weight': False, 'resume': 'save\\model_best.pth.tar', 'save_path': './save/attack_random', 'schedule': [80, 120], 'start_epoch': 0, 'test_batch_size': 32, 'use_cuda': True, 'workers': 4}
+2025-04-23 13:46:02,574 - Random Seed: None
+2025-04-23 13:46:02,574 - Python version: 3.10.14 | packaged by conda-forge | (main, Mar 20 2024, 12:45:18) [GCC 12.3.0]
+2025-04-23 13:46:02,575 - Torch version: 2.2.2+cu118
+2025-04-23 13:46:02,576 - CUDNN version: 8907
+2025-04-23 13:46:06,012 - => creating model 'CustomModel'

@@ -1,0 +1,26 @@
+Bit Counter,Module,Weight Before Attack,Weight After Attack,MCC,MCC Drop,ACC,ACC Drop,TPR,TPR Drop,F1-score,F1-score Drop
+100,classifier,-0.055120401084423065,-1.0,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+200,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+300,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+400,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+500,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+600,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+700,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+800,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+900,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1000,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1100,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1200,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1300,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1400,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1500,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1600,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1700,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1800,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+1900,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+2000,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+2100,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+2200,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+2300,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+2400,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+2500,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0

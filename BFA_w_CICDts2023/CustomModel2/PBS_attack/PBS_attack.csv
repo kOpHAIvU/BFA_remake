@@ -1,5 +1,5 @@
 Bit Counter,Module,Weight Before Attack,Weight After Attack,MCC,MCC Drop,ACC,ACC Drop,TPR,TPR Drop,F1-score,F1-score Drop
-1,classifier,0.04175,0.0,0.66127,0.05175,0.677,0.04814,0.48294,0.09209,0.43541,0.08027
+1,classifier,0.041750308126211166,0.0,0.66127,0.05175,0.677,0.04814,0.48294,0.09209,0.43541,0.08027
 101,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
 201,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
 301,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
@@ -19,3 +19,8 @@ Bit Counter,Module,Weight Before Attack,Weight After Attack,MCC,MCC Drop,ACC,ACC
 1701,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
 1801,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
 1901,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
+2001,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
+2101,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
+2201,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
+2301,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0
+2401,classifier,No attack,No attack,0.66127,0.0,0.677,0.0,0.48294,0.0,0.43541,0.0

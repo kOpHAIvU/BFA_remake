@@ -1,0 +1,26 @@
+Bit Counter,Module,Weight Before Attack,Weight After Attack,MCC,MCC Drop,ACC,ACC Drop,TPR,TPR Drop,F1-score,F1-score Drop
+101,classifier,-0.055120401084423065,-1.0,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+202,classifier,No attack,No attack,0.99105,0.00691,0.9988,0.00093,0.96871,0.01115,0.95331,0.02572
+303,classifier,No attack,No attack,0.99796,-0.00691,0.99973,-0.00093,0.97985,-0.01115,0.97903,-0.02572
+404,classifier,No attack,No attack,0.99796,0.0,0.99973,0.0,0.97985,0.0,0.97903,0.0
+505,classifier,No attack,No attack,0.99782,0.00014,0.99971,2e-05,0.97984,1e-05,0.97879,0.00024
+606,classifier,No attack,No attack,0.99782,-0.0,0.99971,0.0,0.97939,0.00046,0.97854,0.00025
+707,classifier,No attack,No attack,0.99782,0.0,0.99971,0.0,0.97939,0.0,0.97854,0.0
+808,classifier,No attack,No attack,0.99782,0.0,0.99971,0.0,0.97939,0.0,0.97854,0.0
+909,classifier,No attack,No attack,0.2622,0.73562,0.93319,0.06652,0.61872,0.36067,0.60606,0.37248
+1010,classifier,No attack,No attack,0.2622,0.0,0.93319,0.0,0.61872,0.0,0.60606,0.0
+1111,classifier,No attack,No attack,0.2622,0.0,0.93319,0.0,0.61872,0.0,0.60606,0.0
+1212,classifier,No attack,No attack,0.26222,-2e-05,0.93319,0.0,0.61872,0.0,0.60574,0.00033
+1313,classifier,No attack,No attack,0.26222,0.0,0.93319,0.0,0.61872,0.0,0.60574,0.0
+1414,classifier,No attack,No attack,0.26222,0.0,0.93319,0.0,0.61872,0.0,0.60574,0.0
+1515,classifier,No attack,No attack,0.26222,0.0,0.93319,0.0,0.61872,0.0,0.60574,0.0
+1616,classifier,No attack,No attack,0.26222,0.0,0.93319,0.0,0.61872,0.0,0.60574,0.0
+1717,classifier,No attack,No attack,0.2622,2e-05,0.93319,0.0,0.61872,0.0,0.60606,-0.00033
+1818,classifier,No attack,No attack,0.2622,0.0,0.93319,0.0,0.61872,0.0,0.60606,0.0
+1919,classifier,No attack,No attack,0.2626,-0.0004,0.93321,-2e-05,0.61903,-0.00031,0.60636,-0.0003
+2020,classifier,No attack,No attack,0.2626,0.0,0.93321,0.0,0.61903,0.0,0.60636,0.0
+2121,classifier,No attack,No attack,0.2626,0.0,0.93321,0.0,0.61903,0.0,0.60636,0.0
+2222,classifier,No attack,No attack,0.2626,0.0,0.93321,0.0,0.61903,0.0,0.60636,0.0
+2323,classifier,No attack,No attack,0.2626,0.0,0.93321,0.0,0.61903,0.0,0.60636,0.0
+2424,classifier,No attack,No attack,0.2626,0.0,0.93321,0.0,0.61903,0.0,0.60636,0.0
+2525,classifier,No attack,No attack,0.2626,0.0,0.93321,0.0,0.61903,0.0,0.60636,0.0

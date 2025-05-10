@@ -1,0 +1,26 @@
+Bit Counter,Module,Weight Before Attack,Weight After Attack,MCC,MCC Drop,ACC,ACC Drop,TPR,TPR Drop,F1-score,F1-score Drop
+101,classifier,"tensor(8., device='cuda:0')","tensor(8., device='cuda:0')",0.99786,0.0001,0.99971,1e-05,0.97766,0.00219,0.97733,0.00171
+202,classifier,"tensor(32., device='cuda:0')","tensor(32., device='cuda:0')",0.54492,0.45295,0.93326,0.06645,0.46964,0.50801,0.46202,0.51531
+303,classifier,"tensor(2048., device='cuda:0')","tensor(2048., device='cuda:0')",0.13443,0.41048,0.00672,0.92654,0.20901,0.26063,0.19934,0.26268
+404,classifier,"tensor(4., device='cuda:0')","tensor(4., device='cuda:0')",0.13443,0.0,0.00672,0.0,0.20901,0.0,0.19934,0.0
+505,classifier,"tensor(-3., device='cuda:0')","tensor(-3., device='cuda:0')",0.13443,0.0,0.00672,0.0,0.20901,0.0,0.19934,0.0
+606,classifier,"tensor(2048., device='cuda:0')","tensor(2048., device='cuda:0')",0.13519,-0.00076,0.00679,-7e-05,0.21137,-0.00236,0.20102,-0.00168
+707,classifier,"tensor(-9., device='cuda:0')","tensor(-9., device='cuda:0')",0.13519,0.0,0.00679,0.0,0.21137,0.0,0.20102,0.0
+808,classifier,"tensor(-65., device='cuda:0')","tensor(-65., device='cuda:0')",0.13519,0.0,0.00679,0.0,0.21137,0.0,0.20102,0.0
+909,classifier,"tensor(16384., device='cuda:0')","tensor(16384., device='cuda:0')",0.13465,0.00054,0.00691,-0.00011,0.21809,-0.00672,0.20808,-0.00706
+1010,classifier,"tensor(-33., device='cuda:0')","tensor(-33., device='cuda:0')",0.13465,0.0,0.00691,0.0,0.21809,0.0,0.20808,0.0
+1111,classifier,"tensor(16388., device='cuda:0')","tensor(16388., device='cuda:0')",0.13465,0.0,0.00691,0.0,0.21809,0.0,0.20808,0.0
+1212,classifier,"tensor(16., device='cuda:0')","tensor(16., device='cuda:0')",0.13465,0.0,0.00691,0.0,0.21809,0.0,0.20808,0.0
+1313,classifier,"tensor(-2049., device='cuda:0')","tensor(-2049., device='cuda:0')",0.13465,0.0,0.00691,0.0,0.21809,0.0,0.20808,0.0
+1414,classifier,"tensor(4., device='cuda:0')","tensor(4., device='cuda:0')",0.13395,0.0007,0.00679,0.00011,0.21137,0.00672,0.19906,0.00902
+1515,classifier,"tensor(16., device='cuda:0')","tensor(16., device='cuda:0')",0.13395,0.0,0.00679,0.0,0.21137,0.0,0.19906,0.0
+1616,classifier,"tensor(1., device='cuda:0')","tensor(1., device='cuda:0')",0.13395,0.0,0.00679,0.0,0.21137,0.0,0.19906,0.0
+1717,classifier,"tensor(8193., device='cuda:0')","tensor(8193., device='cuda:0')",0.00065,0.13331,0.00024,0.00656,0.01239,0.19898,0.00103,0.19803
+1818,classifier,"tensor(32767., device='cuda:0')","tensor(32767., device='cuda:0')",0.00065,0.0,0.00024,0.0,0.01239,0.0,0.00103,0.0
+1919,classifier,"tensor(512., device='cuda:0')","tensor(512., device='cuda:0')",-0.00039,0.00104,0.00019,4e-05,0.0101,0.00229,0.00101,2e-05
+2020,classifier,"tensor(-3., device='cuda:0')","tensor(-3., device='cuda:0')",-0.00039,0.0,0.00019,0.0,0.0101,0.0,0.00101,0.0
+2121,classifier,"tensor(64., device='cuda:0')","tensor(64., device='cuda:0')",-0.00039,0.0,0.00019,0.0,0.0101,0.0,0.00101,0.0
+2222,classifier,"tensor(-32768., device='cuda:0')","tensor(-32768., device='cuda:0')",-0.00038,-1e-05,0.00019,0.0,0.0101,0.0,0.00101,0.0
+2323,classifier,"tensor(4., device='cuda:0')","tensor(4., device='cuda:0')",-0.00038,0.0,0.00019,0.0,0.0101,0.0,0.00101,0.0
+2424,classifier,"tensor(-33., device='cuda:0')","tensor(-33., device='cuda:0')",-0.00038,0.0,0.00019,0.0,0.0101,0.0,0.00101,0.0
+2525,classifier,"tensor(-257., device='cuda:0')","tensor(-257., device='cuda:0')",-0.00038,0.0,0.00019,0.0,0.0101,0.0,0.00101,0.0

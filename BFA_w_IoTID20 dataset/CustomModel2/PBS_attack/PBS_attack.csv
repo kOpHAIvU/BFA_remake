@@ -1,21 +1,26 @@
-Bit Counter,Module,Weight Before Attack,Weight After Attack,Validation,MCC Drop
-1,classifier,0.05701085925102234,0.0,0.8091980662278,-0.0007077578694656417
-101,classifier,No attack,No attack,0.8091980662278,0.0
-201,classifier,No attack,No attack,0.8091980662278,0.0
-301,classifier,No attack,No attack,0.8091980662278,0.0
-401,classifier,No attack,No attack,0.8091980662278,0.0
-501,classifier,No attack,No attack,0.8091980662278,0.0
-601,classifier,No attack,No attack,0.8091980662278,0.0
-701,classifier,No attack,No attack,0.8091980662278,0.0
-801,classifier,No attack,No attack,0.8091980662278,0.0
-901,classifier,No attack,No attack,0.8091980662278,0.0
-1001,classifier,No attack,No attack,0.8091980662278,0.0
-1101,classifier,No attack,No attack,0.8091980662278,0.0
-1201,classifier,No attack,No attack,0.8091980662278,0.0
-1301,classifier,No attack,No attack,0.8091980662278,0.0
-1401,classifier,No attack,No attack,0.8091980662278,0.0
-1501,classifier,No attack,No attack,0.8091980662278,0.0
-1601,classifier,No attack,No attack,0.8091980662278,0.0
-1701,classifier,No attack,No attack,0.8091980662278,0.0
-1801,classifier,No attack,No attack,0.8091980662278,0.0
-1901,classifier,No attack,No attack,0.8091980662278,0.0
+Bit Counter,Module,Weight Before Attack,Weight After Attack,MCC,MCC Drop,ACC,ACC Drop,TPR,TPR Drop,F1-score,F1-score Drop
+1,classifier,0.05701085925102234,0.0,0.8092,-0.00071,0.88916,-0.00039,0.65853,-0.00215,0.66355,-0.00216
+101,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+201,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+301,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+401,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+501,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+601,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+701,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+801,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+901,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1001,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1101,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1201,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1301,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1401,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1501,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1601,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1701,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1801,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+1901,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+2001,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+2101,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+2201,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+2301,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
+2401,classifier,No attack,No attack,0.8092,0.0,0.88916,0.0,0.65853,0.0,0.66355,0.0
